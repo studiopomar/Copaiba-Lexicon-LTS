@@ -1,0 +1,303 @@
+# ==============================================================================
+# COPAIBA LEXIKON - ARABIC
+# ==============================================================================
+# ==============================================================================
+# MAIN MENUS
+# ==============================================================================
+menu.file = ملف
+menu.edit = تحرير
+menu.view = عرض
+menu.playback = تشغيل
+menu.settings = إعدادات
+menu.encoding = ترميز
+menu.render = عرض الإشارة
+menu.plugins = المكونات الإضافية
+menu.help = مساعدة
+menu.language = اللغة
+# Submenus
+menu.gpu = تسريع GPU
+menu.enc_utau = UTAU الكلاسيكي (اليابانية)
+menu.enc_other = لغات أخرى
+menu.plugins_auto = الأتمتة
+menu.plugins_analysis = التحليل
+menu.plugins_manage = الإدارة
+menu.plugins_convert = التحويل
+menu.plugins_validate = التحقق من الصحة
+# ==============================================================================
+# FILE MENU
+# ==============================================================================
+file.open_voicebank = فتح بنك الصوت...
+file.open_oto = فتح oto.ini...
+file.open_project = فتح المشروع...
+file.save_project = حفظ المشروع
+file.recent_projects = المشاريع الحديثة
+file.no_recent = (لا توجد مشاريع حديثة)
+file.clear_recent = مسح القائمة
+file.save = حفظ
+file.save_as = حفظ باسم...
+file.reveal = فتح مجلد بنك الصوت
+file.reload = إعادة التحميل (Ctrl+F5)
+file.exit = خروج
+# ==============================================================================
+# EDIT MENU
+# ==============================================================================
+edit.undo = تراجع
+edit.redo = إعادة
+edit.apply_preset = تطبيق الإعداد المسبق
+edit.batch_edit = تحرير دفعة...
+edit.snap = التصاق بالذروات
+edit.snap_mode = وضع الالتصاق
+edit.snap_peaks = الذروات
+edit.snap_zero = التقاطع الصفري
+edit.snap_none = لا شيء
+edit.rename = إعادة تسمية الاسم المستعار
+edit.delete = حذف الاسم المستعار
+edit.duplicate = تكرار الاسم المستعار
+edit.mark_complete = تعليم كمنتهٍ
+edit.keybindings = تكوين مفاتيح المعلمات...
+# ==============================================================================
+# VIEW MENU
+# ==============================================================================
+view.minimap = إظهار الخريطة المصغرة
+view.spectrogram = إظهار مطيافية
+view.spectrogram_config = تكوين مطيافية...
+view.gpu = تسريع GPU (>Canary)
+view.gpu_info = معلومات GPU...
+view.normalize = تطبيع الموجة
+view.persistent_zoom = تكبير دائم
+view.reset_layout = إعادة تعيين تخطيط اللوحة
+view.zoom_in = تكبير +
+view.zoom_out = تصغير -
+view.zoom_reset = إعادة تعيين التكبير
+view.cycle_theme = تبديل سمة الموجة
+# ==============================================================================
+# WAVE THEMES (COLORS)
+# ==============================================================================
+theme.blue = أزرق ناعم
+theme.green = أخضر رقمي
+theme.mono = أبيض على أسود
+theme.orange = برتقالي كهرماني
+theme.purple = بنفسجي Synthwave
+theme.cyan = سماوي طرفي
+theme.pink = وردي نيون
+theme.gold = ذهبي كلاسيكي
+theme.red = أحمر مكثف
+# ==============================================================================
+# PLAYBACK MENU
+# ==============================================================================
+playback.segment = تشغيل المقطع (Space)
+playback.full = تشغيل الصوت بالكامل (Shift+Space)
+playback.sector = تشغيل القطاع عند النقر
+playback.sector_tooltip = عند التفعيل، يؤدي النقر على الموجة إلى تشغيل قطاع صغير (~200ms)
+playback.device = جهاز الصوت...
+playback.device_tooltip = تحديد جهاز إخراج الصوت
+playback.auto_save = الحفظ التلقائي
+# ==============================================================================
+# EDIT MODES
+# ==============================================================================
+mode.srp = SRP - التصاق متناسب مع وقت التهيئة
+mode.srp_tooltip = عند التفعيل، يؤدي تحريك وقت التهيئة إلى تحريك الإزاحة ونقطة الاقتطاع بشكل متناسب.
+mode.srna = SRnA - التصاق متناسب مع لا شيء
+mode.srna_tooltip = عند التفعيل، يمكن تحريك كل معلمة بشكل مستقل.
+# ==============================================================================
+# PRESETS
+# ==============================================================================
+preset.config = تكوين الإعدادات المسبقة...
+preset.cv = CV
+preset.vcv = VCV
+preset.vv = VV
+preset.vc = VC
+preset.minus_v = -V
+# ==============================================================================
+# ENCODINGS
+# ==============================================================================
+encoding.auto = تلقائي (الكشف)
+encoding.auto_tooltip = يكتشف ترميز الملف تلقائيًا
+encoding.utf8 = UTF-8 (Modern OpenUTAU)
+encoding.utf8_tooltip = معيار OpenUTAU - يدعم جميع اللغات
+encoding.utf8_bom = UTF-8 BOM (متوافق مع OpenUTAU)
+encoding.utf8_bom_tooltip = UTF-8 مع BOM - توافق أفضل مع محررات Windows
+encoding.cp932 = Shift-JIS / CP932 (UTAU اليابانية)
+encoding.cp932_tooltip = معيار UTAU الياباني الكلاسيكي
+encoding.eucjp = EUC-JP (Unix/Linux UTAU)
+encoding.eucjp_tooltip = ترميز ياباني بديل
+encoding.ansi = ANSI / Windows-1252 (الغربية)
+encoding.ansi_tooltip = معيار Windows للغات الغربية
+encoding.latin1 = Latin-1 / ISO-8859-1 (الأوروبية)
+encoding.latin1_tooltip = ترميز للغات الأوروبية الغربية
+encoding.gbk = GBK / CP936 (الصينية المبسطة)
+encoding.gbk_tooltip = ترميز لبنوك الصوت بالصينية المبسطة
+encoding.euckr = EUC-KR / CP949 (الكورية)
+encoding.euckr_tooltip = ترميز لبنوك الصوت بالكورية
+# ==============================================================================
+# PLUGINS
+# ==============================================================================
+plugin.manage = إدارة المكونات الإضافية...
+plugin.auto_oto = Sower - Auto-OTO...
+plugin.auto_oto_tooltip = يكتشف تلقائيًا الإزاحة ونقطة الاقتطاع
+plugin.vv_detector = Ripening - VV Detector...
+plugin.vv_detector_tooltip = يكتشف انتقالات母音 في الأسماء المستعارة VV
+plugin.pitch = Harvest - Pitch Analysis...
+plugin.pitch_tooltip = يعرض التردد الأساسي للصوت
+plugin.mic_tuner = Orchard - Tuner...
+plugin.mic_tuner_tooltip = مزامن في الوقت الفعلي باستخدام الميكروفون
+plugin.rename = Grafting - Batch Rename...
+plugin.rename_tooltip = إعادة تسمية أسماء مستعارة متعددة في وقت واحد
+plugin.sort = Selection - Sort Aliases...
+plugin.sort_tooltip = فرز الأسماء المستعارة حسب معايير مختلفة
+plugin.romaji = Pollinator - Romaji ↔ Hiragana...
+plugin.romaji_tooltip = تحويل الأسماء المستعارة بين Romaji و Hiragana/Katakana
+plugin.duplicates = Pruner - Duplicate Detector...
+plugin.duplicates_tooltip = العثور على الأسماء المستعارة المكررة
+plugin.consistency = Inspector - Consistency Checker...
+plugin.consistency_tooltip = التحقق من المعلمات واكتشاف المشكلات
+# ==============================================================================
+# TABLE COLUMNS
+# ==============================================================================
+column.favorite = المفضلة
+column.filename = الملف
+column.alias = الاسم المستعار
+column.offset = الإزاحة
+column.overlap = التداخل
+column.preutter = وقت التهيئة
+column.consonant = الساكن
+column.cutoff = نقطة الاقتطاع
+# ==============================================================================
+# STATUS MESSAGES
+# ==============================================================================
+status.loaded = محمل: {filename}
+status.saved = تم الحفظ بنجاح!
+status.saved_at = تم الحفظ: {time}
+status.copied = تم نسخ {count} خلايا
+status.pasted = تم اللصق إلى {count} خلايا
+status.oto_created = تم إنشاء oto.ini مع {count} مدخلات
+status.project_loaded = تم تحميل المشروع: {name}
+status.project_saved = تم حفظ المشروع: {name}
+status.preset_applied = تم تطبيق الإعداد المسبق {preset} على {count} اسم مستعار
+status.sector_on = وضع القطاع مفعّل: انقر للتشغيل ~200ms
+status.sector_off = وضع القطاع معطّل
+status.normalize_on = التطبيع مفعّل
+status.normalize_off = التApiClient معطّل
+status.sounddevice_unavailable = sounddevice غير متوفر
+status.clipboard_empty = الحافظة فارغة
+status.language_changed = تغيرت اللغة إلى {lang}
+status.lines_completed = {done}/{total} منتهية
+status.ready = جاهز
+status.loading = جارٍ التحميل...
+status.saving = جارٍ الحفظ...
+# ==============================================================================
+# DIALOGS AND MESSAGES
+# ==============================================================================
+dialog.error = خطأ
+dialog.confirm = تأكيد
+dialog.warning = تحذير
+dialog.create_oto_title = إنشاء oto.ini
+dialog.create_oto_text = لم يتم العثور على oto.ini في هذا المجلد.
+تم العثور على {count} ملفات .wav.
+هل ترغب في إنشاء oto.ini مع المدخلات الافتراضية؟
+dialog.no_oto_wav = لم يتم العثور على oto.ini أو ملفات .wav في هذا المجلد.
+dialog.oto_create_error = تعذر إنشاء oto.ini:
+{error}
+dialog.reload_title = إعادة التحميل
+dialog.reload_text = توجد تغييرات غير محفوظة. هل ترغب في إعادة التحميل على أي حال؟
+dialog.no_oto_loaded = لم يتم تحميل oto.ini.
+dialog.oto_not_found = لم يتم العثور على ملف oto.ini:
+{path}
+dialog.project_not_found = لم يتم العثور على المشروع:
+{path}
+dialog.delete_title = تأكيد الحذف
+dialog.delete_text = هل ترغب فعلاً في حذف الاسم المستعار في الصف {row}؟
+dialog.rename_title = إعادة تسمية الاسم المستعار
+dialog.rename_text = الاسم الجديد:
+dialog.batch_edit_title = تحرير دفعة
+dialog.batch_edit_none = حدد اسمًا مستعارًا واحدًا على الأقل.
+dialog.load_error = خطأ في التحميل
+dialog.save_error = خطأ في الحفظ
+dialog.project_load_error = خطأ في تحميل المشروع
+dialog.project_save_error = خطأ في حفظ المشروع
+# ==============================================================================
+# STATUS BAR / PROGRESS
+# ==============================================================================
+progress.aliases = الاسم المستعار {current}/{total}
+progress.completed = {count} منتهية
+progress.session = لقد كنت تقوم بالتهيئة لـ {time}
+# ==============================================================================
+# SPLASH SCREEN
+# ==============================================================================
+splash.loading = جارٍ التحميل...
+splash.init_audio = جارٍ تهيئة الصوت...
+splash.init_gpu = جارٍ تهيئة GPU...
+splash.init_plugins = جارٍ تحميل المكونات الإضافية...
+splash.init_ui = جارٍ تحضير الواجهة...
+# ==============================================================================
+# MAIN WINDOW
+# ==============================================================================
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+# ==============================================================================
+# KEYBOARD SHORTCUTS
+# ==============================================================================
+key.offset = الإزاحة (Q افتراضي)
+key.overlap = التداخل (W افتراضي)
+key.preutter = وقت التهيئة (E افتراضي)
+key.consonant = الساكن (R افتراضي)
+key.cutoff = نقطة الاقتطاع (T افتراضي)
+# ==============================================================================
+# ABOUT / HELP
+# ==============================================================================
+help.about = حول Copaiba Lexikon
+help.version = الإصدار
+help.author = طور بواسطة
+help.website = الموقع الإلكتروني
+# ==============================================================================
+# GPU
+# ==============================================================================
+gpu.enabled = GPU مفعّل: {name} ({memory}) [{backend}]
+gpu.disabled = GPU معطّل
+gpu.not_available = GPU غير متوفر
+gpu.info_title = معلومات GPU
+# ==============================================================================
+# MESSAGES AND ERRORS
+# ==============================================================================
+msg.backup_error_title = خطأ في النسخ الاحتياطي
+msg.backup_error = تعذر إنشاء نسخة احتياطية:
+{error}
+msg.load_error_title = خطأ في التحميل
+msg.load_error = خطأ في تحميل الملف:
+{error}
+msg.no_oto_found = لم يتم العثور على oto.ini في هذا المجلد.
+msg.file_not_found = الملف غير موجود:
+{file}
+msg.save_error_title = خطأ في الحفظ
+msg.save_error = خطأ في الحفظ:
+{error}
+msg.saved = تم الحفظ: {file}
+msg.saved_time = لقد كنت تقوم بالتهيئة لـ {time}
+msg.gpu_info_title = معلومات GPU
+msg.gpu_activate_failed = فشل تفعيل GPU
+msg.plugin_not_found_title = خطأ
+msg.plugin_not_found = لم يتم العثور على المكون الإضافي '{name}'.
+msg.plugin_unavailable_title = المكونات الإضافية غير متوفرة
+msg.plugin_unavailable = تعذر تحميل المكون الإضافي '{name}'.
+تحقق مما إذا كان مجلد 'plugins' موجودًا.
+الخطأ: {error}
+msg.plugin_error_title = خطأ في المكون الإضافي
+msg.plugin_error = حدث خطأ أثناء فتح المكون الإضافي:
+{error}
+msg.batch_edit_title = تحرير دفعة
+msg.batch_select_alias = حدد اسمًا مستعارًا واحدًا على الأقل.
+msg.confirm_exit_title = تأكيد الخروج
+msg.confirm_exit = هل ترغب في حفظ التغييرات قبل الخروج؟
+msg.confirm_discard = توجد تغييرات غير محفوظة. هل ترغب في تجاهلها؟
+msg.confirm_delete_title = تأكيد الحذف
+msg.confirm_delete = هل ترغب فعلاً في حذف العناصر المحددة؟
+msg.create_oto_title = إنشاء oto.ini
+msg.create_oto = لم يتم العثور على oto.ini.
+هل ترغب في إنشاء ملف جديد بناءً على ملفات WAV؟
+msg.oto_created = تم إنشاء oto.ini مع {count} مدخلات.
+# ==============================================================================
+# LANGUAGE NAME
+# ==============================================================================
+language.name = اَلْعَرَبِيَّةُ
+language.code = AR

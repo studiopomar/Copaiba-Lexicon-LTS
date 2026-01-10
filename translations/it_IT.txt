@@ -1,0 +1,333 @@
+# ==============================================================================
+# COPAIBA LEXIKON - ITALIANO (ITALIA)
+# ==============================================================================
+
+# ==============================================================================
+# MENU PRINCIPALI
+# ==============================================================================
+
+menu.file = File
+menu.edit = Modifica
+menu.view = Visualizza
+menu.playback = Riproduzione
+menu.settings = Impostazioni
+menu.encoding = Codifica
+menu.render = Rendering del segnale
+menu.plugins = Plugin
+menu.help = Aiuto
+menu.language = Lingua
+
+# Sottomenu
+menu.gpu = Accelerazione GPU
+menu.enc_utau = UTAU Classico (Giapponese)
+menu.enc_other = Altre lingue
+menu.plugins_auto = Automazione
+menu.plugins_analysis = Analisi
+menu.plugins_manage = Gestione
+menu.plugins_convert = Conversione
+menu.plugins_validate = Validazione
+
+# ==============================================================================
+# MENU FILE
+# ==============================================================================
+
+file.open_voicebank = Apri voicebank...
+file.open_oto = Apri oto.ini...
+file.open_project = Apri progetto...
+file.save_project = Salva progetto
+file.recent_projects = Progetti recenti
+file.no_recent = (Nessun progetto recente)
+file.clear_recent = Cancella lista
+file.save = Salva
+file.save_as = Salva con nome...
+file.reveal = Apri cartella voicebank
+file.reload = Ricarica (Ctrl+F5)
+file.exit = Esci
+
+# ==============================================================================
+# MENU MODIFICA
+# ==============================================================================
+
+edit.undo = Annulla
+edit.redo = Ripristina
+edit.apply_preset = Applica Preset
+edit.batch_edit = Modifica batch...
+edit.snap = Aggancia ai picchi
+edit.snap_mode = Modalità aggancio
+edit.snap_peaks = Picchi
+edit.snap_zero = Attraversamento zero
+edit.snap_none = Nessuno
+edit.rename = Rinomina alias
+edit.delete = Elimina alias
+edit.duplicate = Duplica alias
+edit.mark_complete = Segna come completato
+edit.keybindings = Configura Tasti Parametri...
+
+# ==============================================================================
+# MENU VISUALIZZA
+# ==============================================================================
+
+view.minimap = Mostra minimappa
+view.spectrogram = Mostra spettrogramma
+view.spectrogram_config = Configura Spettrogramma...
+view.gpu = Accelerazione GPU (>Canario)
+view.gpu_info = Informazioni GPU...
+view.normalize = Normalizza forma d'onda
+view.persistent_zoom = Zoom persistente
+view.reset_layout = Ripristina layout
+view.zoom_in = Zoom +
+view.zoom_out = Zoom -
+view.zoom_reset = Ripristina zoom
+view.cycle_theme = Cambia tema onda
+
+# ==============================================================================
+# TEMI ONDA (COLORI)
+# ==============================================================================
+
+theme.blue = Blu morbido
+theme.green = Verde digitale
+theme.mono = Bianco su nero
+theme.orange = Arancio ambra
+theme.purple = Viola synthwave
+theme.cyan = Ciano terminale
+theme.pink = Rosa neon
+theme.gold = Oro classico
+theme.red = Rosso intenso
+
+# ==============================================================================
+# MENU RIPRODUZIONE
+# ==============================================================================
+
+playback.segment = Riproduci segmento (Spazio)
+playback.full = Riproduci audio completo (Shift+Spazio)
+playback.sector = Riproduci settore al clic
+playback.sector_tooltip = Quando attivo, cliccare sull'onda riproduce un piccolo settore (~200ms)
+playback.device = Dispositivo audio...
+playback.device_tooltip = Seleziona dispositivo di uscita audio
+playback.auto_save = Salvataggio automatico
+
+# ==============================================================================
+# MODALITÀ DI MODIFICA
+# ==============================================================================
+
+mode.srp = SRP - Aggancio Relativo a Preutterance
+mode.srp_tooltip = Quando attivo, spostare preutterance sposta offset e cutoff proporzionalmente.
+mode.srna = SRnA - Aggancio Relativo a Niente
+mode.srna_tooltip = Quando attivo, ogni parametro può essere spostato indipendentemente.
+
+# ==============================================================================
+# PRESET
+# ==============================================================================
+
+preset.config = Configura Preset...
+preset.cv = CV
+preset.vcv = VCV
+preset.vv = VV
+preset.vc = VC
+preset.minus_v = -V
+
+# ==============================================================================
+# CODIFICHE
+# ==============================================================================
+
+encoding.auto = Auto (rileva)
+encoding.auto_tooltip = Rileva automaticamente la codifica del file
+encoding.utf8 = UTF-8 (OpenUTAU moderno)
+encoding.utf8_tooltip = Standard OpenUTAU - supporta tutte le lingue
+encoding.utf8_bom = UTF-8 BOM (Compatibile OpenUTAU)
+encoding.utf8_bom_tooltip = UTF-8 con BOM - migliore compatibilità Windows
+encoding.cp932 = Shift-JIS / CP932 (UTAU giapponese)
+encoding.cp932_tooltip = Standard UTAU giapponese classico
+encoding.eucjp = EUC-JP (UTAU Unix/Linux)
+encoding.eucjp_tooltip = Codifica giapponese alternativa
+encoding.ansi = ANSI / Windows-1252 (Occidentale)
+encoding.ansi_tooltip = Standard Windows per lingue occidentali
+encoding.latin1 = Latin-1 / ISO-8859-1 (Europeo)
+encoding.latin1_tooltip = Codifica per lingue europee occidentali
+encoding.gbk = GBK / CP936 (Cinese semplificato)
+encoding.gbk_tooltip = Codifica per voicebank in cinese semplificato
+encoding.euckr = EUC-KR / CP949 (Coreano)
+encoding.euckr_tooltip = Codifica per voicebank in coreano
+
+# ==============================================================================
+# PLUGIN
+# ==============================================================================
+
+plugin.manage = Gestisci Plugin...
+plugin.auto_oto = Seminatore - Auto-OTO...
+plugin.auto_oto_tooltip = Rileva automaticamente offset e cutoff
+plugin.vv_detector = Maturazione - Rilevatore VV...
+plugin.vv_detector_tooltip = Rileva transizioni vocaliche negli alias VV
+plugin.pitch = Raccolta - Analisi Pitch...
+plugin.pitch_tooltip = Mostra la frequenza fondamentale dell'audio
+plugin.mic_tuner = Frutteto - Accordatore...
+plugin.mic_tuner_tooltip = Accordatore in tempo reale con microfono
+plugin.rename = Innesto - Rinomina Massa...
+plugin.rename_tooltip = Rinomina più alias contemporaneamente
+plugin.sort = Selezione - Ordina Alias...
+plugin.sort_tooltip = Ordina alias per diversi criteri
+plugin.romaji = Impollinatore - Romaji ↔ Hiragana...
+plugin.romaji_tooltip = Converte alias tra Romaji e Hiragana/Katakana
+plugin.duplicates = Potatore - Rilevatore Duplicati...
+plugin.duplicates_tooltip = Trova alias duplicati
+plugin.consistency = Ispettore - Controllo Coerenza...
+plugin.consistency_tooltip = Valida parametri e rileva problemi
+
+# ==============================================================================
+# COLONNE TABELLA
+# ==============================================================================
+
+column.favorite = Preferito
+column.filename = File
+column.alias = Alias
+column.offset = Offset
+column.overlap = Overlap
+column.preutter = Preutterance
+column.consonant = Consonante
+column.cutoff = Cutoff
+
+# ==============================================================================
+# MESSAGGI DI STATO
+# ==============================================================================
+
+status.loaded = Caricato: {filename}
+status.saved = Salvato con successo!
+status.saved_at = Salvato: {time}
+status.copied = Copiate {count} celle
+status.pasted = Incollato in {count} celle
+status.oto_created = oto.ini creato con {count} voci
+status.project_loaded = Progetto caricato: {name}
+status.project_saved = Progetto salvato: {name}
+status.preset_applied = Preset {preset} applicato a {count} alias
+status.sector_on = Modalità settore attiva: clicca per riprodurre ~200ms
+status.sector_off = Modalità settore disattiva
+status.normalize_on = Normalizzazione attiva
+status.normalize_off = Normalizzazione disattiva
+status.sounddevice_unavailable = sounddevice non disponibile
+status.clipboard_empty = Appunti vuoti
+status.language_changed = Lingua cambiata in {lang}
+status.lines_completed = {done}/{total} completati
+status.ready = Pronto
+status.loading = Caricamento...
+status.saving = Salvataggio...
+
+# ==============================================================================
+# DIALOGHI E MESSAGGI
+# ==============================================================================
+
+dialog.error = Errore
+dialog.confirm = Conferma
+dialog.warning = Avviso
+dialog.create_oto_title = Crea oto.ini
+dialog.create_oto_text = Nessun oto.ini trovato in questa cartella.\n\nTrovati {count} file .wav.\n\nVuoi creare un oto.ini con voci predefinite?
+dialog.no_oto_wav = Nessun oto.ini o file .wav trovato in questa cartella.
+dialog.oto_create_error = Impossibile creare oto.ini:\n{error}
+dialog.reload_title = Ricarica
+dialog.reload_text = Ci sono modifiche non salvate. Ricaricare comunque?
+dialog.no_oto_loaded = Nessun oto.ini caricato.
+dialog.oto_not_found = File oto.ini non trovato:\n{path}
+dialog.project_not_found = Progetto non trovato:\n{path}
+dialog.delete_title = Conferma Eliminazione
+dialog.delete_text = Vuoi davvero eliminare l'alias alla riga {row}?
+dialog.rename_title = Rinomina Alias
+dialog.rename_text = Nuovo nome:
+dialog.batch_edit_title = Modifica Batch
+dialog.batch_edit_none = Seleziona almeno un alias.
+dialog.load_error = Errore di caricamento
+dialog.save_error = Errore di salvataggio
+dialog.project_load_error = Errore caricamento progetto
+dialog.project_save_error = Errore salvataggio progetto
+
+# ==============================================================================
+# BARRA DI STATO / PROGRESSO
+# ==============================================================================
+
+progress.aliases = Alias {current}/{total}
+progress.completed = {count} completati
+progress.session = Stai configurando da {time}
+
+# ==============================================================================
+# SCHERMATA INIZIALE
+# ==============================================================================
+
+splash.loading = Caricamento...
+splash.init_audio = Inizializzazione audio...
+splash.init_gpu = Inizializzazione GPU...
+splash.init_plugins = Caricamento plugin...
+splash.init_ui = Preparazione interfaccia...
+
+# ==============================================================================
+# FINESTRA PRINCIPALE
+# ==============================================================================
+
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+
+# ==============================================================================
+# SCORCIATOIE DA TASTIERA
+# ==============================================================================
+
+key.offset = Offset (Q predefinito)
+key.overlap = Overlap (W predefinito)
+key.preutter = Preutterance (E predefinito)
+key.consonant = Consonante (R predefinito)
+key.cutoff = Cutoff (T predefinito)
+
+# ==============================================================================
+# INFORMAZIONI / AIUTO
+# ==============================================================================
+
+help.about = Informazioni su Copaiba Lexikon
+help.version = Versione
+help.author = Sviluppato da
+help.website = Sito web
+
+# ==============================================================================
+# GPU
+# ==============================================================================
+
+gpu.enabled = GPU attivata: {name} ({memory}) [{backend}]
+gpu.disabled = GPU disattivata
+gpu.not_available = GPU non disponibile
+gpu.info_title = Informazioni GPU
+
+# ==============================================================================
+# MESSAGGI ED ERRORI
+# ==============================================================================
+
+msg.backup_error_title = Errore Backup
+msg.backup_error = Impossibile creare il backup:\n{error}
+msg.load_error_title = Errore di Caricamento
+msg.load_error = Errore durante il caricamento:\n{error}
+msg.no_oto_found = Nessun oto.ini trovato in questa cartella.
+msg.file_not_found = File non trovato:\n{file}
+msg.save_error_title = Errore di Salvataggio
+msg.save_error = Errore durante il salvataggio:\n{error}
+msg.saved = Salvato: {file}
+msg.saved_time = Stai configurando da {time}
+msg.gpu_info_title = Informazioni GPU
+msg.gpu_activate_failed = Attivazione GPU fallita
+msg.plugin_not_found_title = Errore
+msg.plugin_not_found = Plugin '{name}' non trovato.
+msg.plugin_unavailable_title = Plugin Non Disponibili
+msg.plugin_unavailable = Impossibile caricare il plugin '{name}'.\nVerifica che la cartella 'plugins' esista.\n\nErrore: {error}
+msg.plugin_error_title = Errore Plugin
+msg.plugin_error = Si è verificato un errore durante l'apertura del plugin:\n{error}
+msg.batch_edit_title = Modifica Batch
+msg.batch_select_alias = Seleziona almeno un alias.
+msg.confirm_exit_title = Conferma Uscita
+msg.confirm_exit = Salvare le modifiche prima di uscire?
+msg.confirm_discard = Ci sono modifiche non salvate. Annullarle?
+msg.confirm_delete_title = Conferma Eliminazione
+msg.confirm_delete = Vuoi davvero eliminare gli elementi selezionati?
+msg.create_oto_title = Crea oto.ini
+msg.create_oto = Nessun oto.ini trovato.\nCreare uno nuovo basato sui file WAV?
+msg.oto_created = oto.ini creato con {count} voci.
+
+# ==============================================================================
+# NOME DELLA LINGUA
+# ==============================================================================
+
+language.name = Italiano (Italia)
+language.code = it_IT

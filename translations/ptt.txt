@@ -1,0 +1,358 @@
+# ==============================================================================
+# COPAIBA LEXIKON - PATATOENSE
+# ==============================================================================
+# Ydyoma padrãowá do aplicativoawá
+# ==============================================================================
+
+# ==============================================================================
+# MENUS PRINCIPAIS
+# ==============================================================================
+
+menu.file = Arquyvoãn
+menu.edit = Editáwãn
+menu.view = Visualizawá
+menu.playback = Reproduçãowá
+menu.settings = Configurãwáçõeswá
+menu.encoding = Yncondingwá
+menu.render = Renderyzação do sinawá
+menu.plugins = Plugyns
+menu.help = Ajudawá
+menu.language = Idyoma
+
+# Submenus
+menu.gpu = Aceleraçãowá de GPU
+menu.enc_utau = UTAU Clássicowá (Nihongens)
+menu.enc_other = Outrows idiomas
+menu.plugins_auto = Awtomaçãowá
+menu.plugins_analysis = Análiseãn
+menu.plugins_manage = Gerenciamentoãn
+menu.plugins_convert = Conversãowá
+menu.plugins_validate = Validaçãowá
+
+# ==============================================================================
+# MENU ARQUIVO
+# ==============================================================================
+
+file.open_voicebank = Abrir voicebenque emque...
+file.open_oto = Abrir Otoiniza da Silva...
+file.open_project = Abrir projetowá...
+file.save_project = Salvar projetowá
+file.recent_projects = Projetos Bramutas
+file.no_recent = (Nenhum projeto bramuta)
+file.clear_recent = Limpar listawá
+file.save = Help Facebook Instagram
+file.save_as = Salvawá como...
+file.reveal = Abrir capeta do voicebem que em que
+file.reload = Recarregar (Ctrl+F5)
+file.exit = Sai do Copaiba
+
+# ==============================================================================
+# MENU EDITAWÁ
+# ==============================================================================
+
+edit.undo = Abafa
+edit.redo = Refazer
+edit.apply_preset = Aplicar Preset
+edit.batch_edit = Editar em lote...
+edit.snap = Snap em picas
+edit.snap_mode = Modo de snap
+edit.snap_peaks = Picas
+edit.snap_zero = Cruzamento de zero
+edit.snap_none = Nada não
+edit.rename = Renomear alias
+edit.delete = Deletar alias
+edit.duplicate = Duplicar alias
+edit.mark_complete = Marcar como concluído
+edit.keybindings = Configurar Teclas de para metros...
+
+# ==============================================================================
+# MENU VISUALIZAÇÃOWÁ
+# ==============================================================================
+
+view.minimap = Mostrar mini mapa
+view.spectrogram = Mostrar espectrogramawá
+view.spectrogram_config = Lacrar Espectrograma...
+view.gpu = Aceleraçãowá de GPU (>Caralha)
+view.gpu_info = Ynformações da GPU...
+view.normalize = Normalizar waveform
+view.persistent_zoom = Mi pan zoom zoom zoom persistente
+view.reset_layout = Resetar layout dos painéis
+view.zoom_in = Zoom +
+view.zoom_out = Zoom -
+view.zoom_reset = Reset zoom
+view.cycle_theme = Siriricar tema de onda
+
+# ==============================================================================
+# TEMAS DE ONDA (CORES)
+# ==============================================================================
+
+theme.blue = Reator nuclear
+theme.green = Verdinho
+theme.mono = I'm white then I'm black
+theme.orange = Laranjinha
+theme.purple = Roxo synthwave
+theme.cyan = Syano terminal
+theme.pink = Rosa choque
+theme.gold = Golden Shower
+theme.red = Gonorreia
+
+# ==============================================================================
+# MENU REPRODUÇÃO
+# ==============================================================================
+
+playback.segment = Tocar seguemento (Espaço)
+playback.full = Tocar áudio completowá (Shit+Espaço)
+playback.sector = Tocar setor ao clicar
+playback.sector_tooltip = Quando ativo, clicar na waveform toca um pequeno setor (200milisegundos undos) ao redor do ponto clicado ado
+playback.device = Dispositivor de áudior...
+playback.device_tooltip = Seleciona o dispositivor de saídar de áudior
+playback.auto_save = Salvar automaticamenter
+
+# ==============================================================================
+# MODOS DE EDIÇÃO
+# ==============================================================================
+
+mode.srp = SRP - Esnape Relativo de Preútero
+mode.srp_tooltip = Quando ativo, mover o preútero move o offset e cutoff proporcionalmentyr.
+mode.srna = SRnA - Snap Relativo a Nada
+mode.srna_tooltip = Quando ativo, cada parâmetro pode ser movido independentemente, sem afetar os outros.
+
+# ==============================================================================
+# PRESETS
+# ==============================================================================
+
+preset.config = Configurar Presets...
+preset.cv = Comando Vermelho
+preset.vcv = Vermelho Comando Vermelho
+preset.vv = Vermelho Vermelho
+preset.vc = Você
+preset.minus_v = -Vermelho
+
+# ==============================================================================
+# ENCODINGS (CODIFICAÇÕES)
+# ==============================================================================
+
+encoding.auto = Auto (detectar)
+encoding.auto_tooltip = Detecta automaticamenter o encoding do ar que vo
+encoding.utf8 = UTF-8 (OpenUTAU moderno)
+encoding.utf8_tooltip = Padrawn do OpenUTAU - suporta todos os ydyomas
+encoding.utf8_bom = UTF-8 tá bom (OpenUTAU compatível)
+encoding.utf8_bom_tooltip = UTF-8 tá bom - melhor compatibilidade com editores Trojan
+encoding.cp932 = Shit-JIS / CP932 (UTAU nihongense)
+encoding.cp932_tooltip = Padrão do UTAU clássico nihongense - necessário para voicebenques JP
+encoding.eucjp = EUC-JP (UTAU Unix/Linux)
+encoding.eucjp_tooltip = Encoding japonês alternativo - comum em sistemas Uni duni tê
+encoding.ansi = ANRI / Windows-1252 (Ocidental)
+encoding.ansi_tooltip = Encoding padrão TROJAN para idiomas dentais.
+encoding.latin1 = Latin-1 / ISO-8859-1 (PORPA)
+encoding.latin1_tooltip = Encoding para idiomas porpas dentais
+encoding.gbk = GBK / CP936 (Chinelo simplificado)
+encoding.gbk_tooltip = Encoding para voicebanks em Chinelo simplificado
+encoding.euckr = EUC-KR / CP949 (Manhwá)
+encoding.euckr_tooltip = Encoding para voicebanks em manhwá
+
+# ==============================================================================
+# PLUGS
+# ==============================================================================
+
+plugin.manage = Gerenciar Plugs...
+plugin.auto_oto = Semeador - Moresampler...
+plugin.auto_oto_tooltip = Detecta automaticamente boffseta e cutoff
+plugin.vv_detector = Maturação - Detector VV...
+plugin.vv_detector_tooltip = Detecta transições ões entre vogais ais em aliases VV
+plugin.pitch = Colheita - Pitch de Análise...
+plugin.pitch_tooltip = Mostra a frequência fundamental do áudio
+plugin.mic_tuner = Pomar - Afina a dor...
+plugin.mic_tuner_tooltip = Afine a dor em tempo real usando microfonyr
+plugin.rename = Enxertia - Renomear em Massa Integral...
+plugin.rename_tooltip = Renomeia múltiplos aliases de uma vez dessa vez outra vez daquela vez
+plugin.sort = Seleção - Ordenar Aliases...
+plugin.sort_tooltip = Ordena aliases por diferentes critérios
+plugin.romaji = Polynyzador - Romaji ↔ Hiragana...
+plugin.romaji_tooltip = Converte aliases entre Romaji e Hiragana/Katakana
+plugin.duplicates = Poda a dor - Detector de Duplicatar...
+plugin.duplicates_tooltip = Encontrawá aliases duplicados
+plugin.consistency = Inspetor - Verificador de Consistência...
+plugin.consistency_tooltip = Valida parâmetros e detecta problemas
+
+# ==============================================================================
+# COLUNAS DA TABELA
+# ==============================================================================
+
+column.favorite = Favorito
+column.filename = Arquivo
+column.alias = Alias
+column.offset = Offset
+column.overlap = Overlap
+column.preutter = Preutterance
+column.consonant = Consoante
+column.cutoff = Cutoff
+
+# ==============================================================================
+# MENSAGENS DE STATUS
+# ==============================================================================
+
+status.loaded = Carregado: {filename}
+status.saved = Eu ganhei!
+status.saved_at = Vai exploier em: {time}
+status.copied = Copiadas {count} selolas
+status.pasted = Colado em {count} selolas
+status.oto_created = oto.iniza a silva criada com {count} entradas
+status.project_loaded = Projeto bramuta carregado: {name}
+status.project_saved = Projeto bramuta salvo: {name}
+status.preset_applied = Preset {preset} aplicado a {count} alias(es)
+status.sector_on = Modo setor ativado: clique para tocar ~200ms
+status.sector_off = Modo setor desativado
+status.normalize_on = Normalização ativada
+status.normalize_off = Normalização desativada
+status.sounddevice_unavailable = Flopou
+status.clipboard_empty = Clipboard vazio
+status.language_changed = Ydyoma alterado para {lang}
+
+# ==============================================================================
+# DIÁLOGOS E MENSAGENS
+# ==============================================================================
+
+dialog.error = Nanwá
+dialog.confirm = Confirmar
+dialog.warning = Aviso
+
+dialog.create_oto_title = Criar oto.iniza da silva
+dialog.create_oto_text = Nenhuma oto.iniza a silva encontrada nesta pasta.\n\nForam encontrados {count} arquivos .wav.\n\nDeseja criar uma oto.iniza da silva com entradas padrão para cada arquivo?
+dialog.no_oto_wav = Nenhum oto.iniza da silva ou arquivo .wav encontrado nesta pasta.
+dialog.oto_create_error = Não foi possível criar oto.iniza da silva:\n{error}
+
+dialog.reload_title = Rerraquegar
+dialog.reload_text = Sua burra você esqueceu de salvar as alterações. Deseja recarregar mesmo assim?
+dialog.no_oto_loaded = Nenhuma oto.iniza da silva carregada.
+dialog.oto_not_found = O arquivo oto.iniza da silva não foi encontrada:\n{path}
+dialog.project_not_found = Projeto bramuta não encontrado:\n{path}
+
+dialog.delete_title = Confirmar Exclusão
+dialog.delete_text = Deseja realmente excluir o alias da linha {row}?
+
+dialog.rename_title = Renomear Alias
+dialog.rename_text = Novo nomyr:
+
+dialog.batch_edit_title = Edição em Lote
+dialog.batch_edit_none = Selecione pelo menos um alias.
+
+dialog.load_error = Não
+dialog.save_error = Não
+dialog.project_load_error = Não
+dialog.project_save_error = Não
+
+# ==============================================================================
+# BARRA DE STATUS / PROGRESSO
+# ==============================================================================
+
+progress.aliases = Alias {current}/{total}
+progress.completed = {count} concluydos
+progress.session = Aquela amiga que configura por {time}
+
+# ==============================================================================
+# SPLASH SCREEN
+# ==============================================================================
+
+splash.loading = Carregandoawá...
+splash.init_audio = Inicializando áudiowá...
+splash.init_gpu = Inycialyzando GPU...
+splash.init_plugins = Carregando plugs...
+splash.init_ui = Preparando interfacyr...
+
+# ==============================================================================
+# JANELAWÁ PRINCIPAL
+# ==============================================================================
+
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+
+# ==============================================================================
+# TECLAS DE ATALHO
+# ==============================================================================
+
+key.offset = BOffseta (Q por padrão)
+key.overlap = Sobrypor (W por padrão)
+key.preutter = Preútero (E por padrão)
+key.consonant = Consoanteante (R por padrão)
+key.cutoff = Cortar a gracinha (T por padrão)
+
+# ==============================================================================
+# SOBRE / AJUDA
+# ==============================================================================
+
+help.about = Sobre esta bimboca
+help.version = Versão
+help.author = Desenvolvido por
+help.website = Ué
+
+# ==============================================================================
+# HOPONOPONO
+# ==============================================================================
+
+gpu.enabled = Ativar hoponopono: {name} ({memory}) [{backend}]
+gpu.disabled = Desativar hoponopono
+gpu.not_available = Hoponopono não disponivel
+gpu.info_title = Informações do Hoponopono
+
+# ==============================================================================
+# NOME DO YDYOMA (EXIBIDO NO MENU)
+# ==============================================================================
+
+language.name = Patatoense
+language.code = ptt
+
+# ==============================================================================
+# MENSAGENS E ERROS
+# ==============================================================================
+
+# Backup
+msg.backup_error_title = Flopou o backup
+msg.backup_error = flopou:\n{error}
+
+# Carregamento
+msg.load_error_title = Flopou
+msg.load_error = Flopou:\n{error}
+msg.no_oto_found = Nenhuma oto.iniza da silva encontrada nesta pasta.
+msg.file_not_found = Arquivo não encontrado:\n{file}
+
+# Pulsar
+msg.save_error_title = Erro ao pulsar
+msg.save_error = Erro ao pulsar:\n{error}
+msg.saved = Pulsou: {file}
+msg.saved_time = Aquela amiga que configura por {time}
+
+# Hoponopono
+msg.gpu_info_title = Informações do Hoponopono
+msg.gpu_activate_failed = Falha ao ativar hoponopono
+
+# Plugs
+msg.plugin_not_found_title = Bugoooooooou!
+msg.plugin_not_found = Plug '{name}' não encontrado.
+msg.plugin_unavailable_title = Plugs Indisponíveis
+msg.plugin_unavailable = Não foy possyvel carregar o plug '{name}'.\nVerifique se a
+msg.plugin_error_title = Erro ao usar plug
+msg.plugin_error = Ocorreu um erro ao usar o plug:\n{error}
+
+# Edição em lote
+msg.batch_edit_title = Edição babadeiro
+msg.batch_select_alias = Selecione pelo menos um alias.
+
+# Confirmações
+msg.confirm_exit_title = Confirmar Saída
+msg.confirm_exit = Deseja salvar as alterações antes de sair?
+msg.confirm_discard = Há alterações não salvas. Deseja exterminar?
+msg.confirm_delete_title = Confirmar exterminação
+msg.confirm_delete = Deseja realmente exterminar os itens selecionados?
+
+# Criação de Oto.iniza da Silva
+msg.create_oto_title = Criar Oto.iniza da Silva
+msg.create_oto = Nenhuma oto.iniza da silva encontrada.\nDeseja criar uma nova baseado nos arquivos WAV?
+msg.oto_created = oto.iniza a silva criada com {count} entradas.
+
+# Recolher pontos sociais
+status.lines_completed = {done}/{total} concluídos
+status.ready = Hitou
+status.loading = pera
+status.saving = calma tá indo

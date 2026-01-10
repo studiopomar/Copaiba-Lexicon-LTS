@@ -1,0 +1,333 @@
+# ==============================================================================
+# COPAIBA LEXIKON - 日本語 (日本)
+# ==============================================================================
+
+# ==============================================================================
+# メインメニュー
+# ==============================================================================
+
+menu.file = ファイル
+menu.edit = 編集
+menu.view = 表示
+menu.playback = 再生
+menu.settings = 設定
+menu.encoding = エンコーディング
+menu.render = 信号レンダリング
+menu.plugins = プラグイン
+menu.help = ヘルプ
+menu.language = 言語
+
+# サブメニュー
+menu.gpu = GPUアクセラレーション
+menu.enc_utau = UTAUクラシック（日本語）
+menu.enc_other = その他の言語
+menu.plugins_auto = 自動化
+menu.plugins_analysis = 分析
+menu.plugins_manage = 管理
+menu.plugins_convert = 変換
+menu.plugins_validate = 検証
+
+# ==============================================================================
+# ファイルメニュー
+# ==============================================================================
+
+file.open_voicebank = ボイスバンクを開く...
+file.open_oto = oto.iniを開く...
+file.open_project = プロジェクトを開く...
+file.save_project = プロジェクトを保存
+file.recent_projects = 最近のプロジェクト
+file.no_recent = (最近のプロジェクトはありません)
+file.clear_recent = リストをクリア
+file.save = 保存
+file.save_as = 名前を付けて保存...
+file.reveal = ボイスバンクフォルダを開く
+file.reload = 再読み込み (Ctrl+F5)
+file.exit = 終了
+
+# ==============================================================================
+# 編集メニュー
+# ==============================================================================
+
+edit.undo = 元に戻す
+edit.redo = やり直し
+edit.apply_preset = プリセットを適用
+edit.batch_edit = 一括編集...
+edit.snap = ピークにスナップ
+edit.snap_mode = スナップモード
+edit.snap_peaks = ピーク
+edit.snap_zero = ゼロクロッシング
+edit.snap_none = なし
+edit.rename = エイリアスを名前変更
+edit.delete = エイリアスを削除
+edit.duplicate = エイリアスを複製
+edit.mark_complete = 完了としてマーク
+edit.keybindings = パラメータキーを設定...
+
+# ==============================================================================
+# 表示メニュー
+# ==============================================================================
+
+view.minimap = ミニマップを表示
+view.spectrogram = スペクトログラムを表示
+view.spectrogram_config = スペクトログラムを設定...
+view.gpu = GPUアクセラレーション（>カナリア）
+view.gpu_info = GPU情報...
+view.normalize = 波形を正規化
+view.persistent_zoom = ズームを維持
+view.reset_layout = パネルレイアウトをリセット
+view.zoom_in = ズーム +
+view.zoom_out = ズーム -
+view.zoom_reset = ズームをリセット
+view.cycle_theme = 波形テーマを変更
+
+# ==============================================================================
+# 波形テーマ（カラー）
+# ==============================================================================
+
+theme.blue = ソフトブルー
+theme.green = デジタルグリーン
+theme.mono = 白黒
+theme.orange = アンバーオレンジ
+theme.purple = シンセウェーブパープル
+theme.cyan = ターミナルシアン
+theme.pink = ネオンピンク
+theme.gold = クラシックゴールド
+theme.red = インテンスレッド
+
+# ==============================================================================
+# 再生メニュー
+# ==============================================================================
+
+playback.segment = セグメントを再生（スペース）
+playback.full = 全体を再生（Shift+スペース）
+playback.sector = クリックでセクターを再生
+playback.sector_tooltip = 有効時、波形をクリックすると小セクター（〜200ms）を再生
+playback.device = オーディオデバイス...
+playback.device_tooltip = オーディオ出力デバイスを選択
+playback.auto_save = 自動保存
+
+# ==============================================================================
+# 編集モード
+# ==============================================================================
+
+mode.srp = SRP - プレアタランス相対スナップ
+mode.srp_tooltip = 有効時、プレアタランスを移動するとオフセットとカットオフも比例して移動します。
+mode.srna = SRnA - 無相対スナップ
+mode.srna_tooltip = 有効時、各パラメータは独立して移動できます。
+
+# ==============================================================================
+# プリセット
+# ==============================================================================
+
+preset.config = プリセットを設定...
+preset.cv = CV
+preset.vcv = VCV
+preset.vv = VV
+preset.vc = VC
+preset.minus_v = -V
+
+# ==============================================================================
+# エンコーディング
+# ==============================================================================
+
+encoding.auto = 自動（検出）
+encoding.auto_tooltip = ファイルのエンコーディングを自動検出
+encoding.utf8 = UTF-8（モダンOpenUTAU）
+encoding.utf8_tooltip = OpenUTAU標準 - すべての言語をサポート
+encoding.utf8_bom = UTF-8 BOM（OpenUTAU互換）
+encoding.utf8_bom_tooltip = BOM付きUTF-8 - Windows互換性向上
+encoding.cp932 = Shift-JIS / CP932（日本語UTAU）
+encoding.cp932_tooltip = クラシック日本語UTAUの標準
+encoding.eucjp = EUC-JP（Unix/Linux UTAU）
+encoding.eucjp_tooltip = 代替の日本語エンコーディング
+encoding.ansi = ANSI / Windows-1252（西洋）
+encoding.ansi_tooltip = 西洋言語のWindows標準
+encoding.latin1 = Latin-1 / ISO-8859-1（ヨーロッパ）
+encoding.latin1_tooltip = 西ヨーロッパ言語向けエンコーディング
+encoding.gbk = GBK / CP936（簡体字中国語）
+encoding.gbk_tooltip = 簡体字中国語ボイスバンク向けエンコーディング
+encoding.euckr = EUC-KR / CP949（韓国語）
+encoding.euckr_tooltip = 韓国語ボイスバンク向けエンコーディング
+
+# ==============================================================================
+# プラグイン
+# ==============================================================================
+
+plugin.manage = プラグインを管理...
+plugin.auto_oto = 種まき - 自動OTO...
+plugin.auto_oto_tooltip = オフセットとカットオフを自動検出
+plugin.vv_detector = 成熟 - VV検出器...
+plugin.vv_detector_tooltip = VVエイリアスの母音遷移を検出
+plugin.pitch = 収穫 - ピッチ分析...
+plugin.pitch_tooltip = オーディオの基本周波数を表示
+plugin.mic_tuner = 果樹園 - チューナー...
+plugin.mic_tuner_tooltip = マイクを使用したリアルタイムチューナー
+plugin.rename = 接ぎ木 - 一括名前変更...
+plugin.rename_tooltip = 複数のエイリアスを一度に名前変更
+plugin.sort = 選抜 - エイリアスソート...
+plugin.sort_tooltip = さまざまな基準でエイリアスをソート
+plugin.romaji = 受粉 - ローマ字 ↔ ひらがな...
+plugin.romaji_tooltip = ローマ字とひらがな/カタカナ間でエイリアスを変換
+plugin.duplicates = 剪定 - 重複検出器...
+plugin.duplicates_tooltip = 重複エイリアスを検索
+plugin.consistency = 検査 - 一貫性チェッカー...
+plugin.consistency_tooltip = パラメータを検証し問題を検出
+
+# ==============================================================================
+# テーブルカラム
+# ==============================================================================
+
+column.favorite = お気に入り
+column.filename = ファイル
+column.alias = エイリアス
+column.offset = オフセット
+column.overlap = オーバーラップ
+column.preutter = プレアタランス
+column.consonant = 子音
+column.cutoff = カットオフ
+
+# ==============================================================================
+# ステータスメッセージ
+# ==============================================================================
+
+status.loaded = 読み込み完了: {filename}
+status.saved = 保存しました！
+status.saved_at = 保存時刻: {time}
+status.copied = {count}セルをコピー
+status.pasted = {count}セルに貼り付け
+status.oto_created = {count}エントリでoto.iniを作成
+status.project_loaded = プロジェクト読み込み: {name}
+status.project_saved = プロジェクト保存: {name}
+status.preset_applied = プリセット{preset}を{count}エイリアスに適用
+status.sector_on = セクターモードオン: クリックで〜200ms再生
+status.sector_off = セクターモードオフ
+status.normalize_on = 正規化オン
+status.normalize_off = 正規化オフ
+status.sounddevice_unavailable = sounddeviceが利用できません
+status.clipboard_empty = クリップボードが空です
+status.language_changed = 言語を{lang}に変更しました
+status.lines_completed = {done}/{total} 完了
+status.ready = 準備完了
+status.loading = 読み込み中...
+status.saving = 保存中...
+
+# ==============================================================================
+# ダイアログとメッセージ
+# ==============================================================================
+
+dialog.error = エラー
+dialog.confirm = 確認
+dialog.warning = 警告
+dialog.create_oto_title = oto.iniを作成
+dialog.create_oto_text = このフォルダにoto.iniが見つかりません。\n\n{count}個の.wavファイルが見つかりました。\n\nデフォルトエントリでoto.iniを作成しますか?
+dialog.no_oto_wav = このフォルダにoto.iniまたは.wavファイルが見つかりません。
+dialog.oto_create_error = oto.iniを作成できませんでした:\n{error}
+dialog.reload_title = 再読み込み
+dialog.reload_text = 保存されていない変更があります。それでも再読み込みしますか?
+dialog.no_oto_loaded = oto.iniが読み込まれていません。
+dialog.oto_not_found = oto.iniファイルが見つかりません:\n{path}
+dialog.project_not_found = プロジェクトが見つかりません:\n{path}
+dialog.delete_title = 削除の確認
+dialog.delete_text = 行{row}のエイリアスを本当に削除しますか?
+dialog.rename_title = エイリアスの名前を変更
+dialog.rename_text = 新しい名前:
+dialog.batch_edit_title = 一括編集
+dialog.batch_edit_none = 少なくとも1つのエイリアスを選択してください。
+dialog.load_error = 読み込みエラー
+dialog.save_error = 保存エラー
+dialog.project_load_error = プロジェクト読み込みエラー
+dialog.project_save_error = プロジェクト保存エラー
+
+# ==============================================================================
+# ステータスバー / 進捗
+# ==============================================================================
+
+progress.aliases = エイリアス {current}/{total}
+progress.completed = {count} 完了
+progress.session = 設定時間: {time}
+
+# ==============================================================================
+# スプラッシュスクリーン
+# ==============================================================================
+
+splash.loading = 読み込み中...
+splash.init_audio = オーディオを初期化中...
+splash.init_gpu = GPUを初期化中...
+splash.init_plugins = プラグインを読み込み中...
+splash.init_ui = インターフェースを準備中...
+
+# ==============================================================================
+# メインウィンドウ
+# ==============================================================================
+
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+
+# ==============================================================================
+# キーボードショートカット
+# ==============================================================================
+
+key.offset = オフセット（デフォルトQ）
+key.overlap = オーバーラップ（デフォルトW）
+key.preutter = プレアタランス（デフォルトE）
+key.consonant = 子音（デフォルトR）
+key.cutoff = カットオフ（デフォルトT）
+
+# ==============================================================================
+# 情報 / ヘルプ
+# ==============================================================================
+
+help.about = Copaiba Lexikonについて
+help.version = バージョン
+help.author = 開発者
+help.website = ウェブサイト
+
+# ==============================================================================
+# GPU
+# ==============================================================================
+
+gpu.enabled = GPU有効: {name} ({memory}) [{backend}]
+gpu.disabled = GPU無効
+gpu.not_available = GPUが利用できません
+gpu.info_title = GPU情報
+
+# ==============================================================================
+# メッセージとエラー
+# ==============================================================================
+
+msg.backup_error_title = バックアップエラー
+msg.backup_error = バックアップを作成できませんでした:\n{error}
+msg.load_error_title = 読み込みエラー
+msg.load_error = ファイルの読み込み中にエラーが発生しました:\n{error}
+msg.no_oto_found = このフォルダにoto.iniが見つかりません。
+msg.file_not_found = ファイルが見つかりません:\n{file}
+msg.save_error_title = 保存エラー
+msg.save_error = 保存中にエラーが発生しました:\n{error}
+msg.saved = 保存しました: {file}
+msg.saved_time = 設定時間: {time}
+msg.gpu_info_title = GPU情報
+msg.gpu_activate_failed = GPUの有効化に失敗しました
+msg.plugin_not_found_title = エラー
+msg.plugin_not_found = プラグイン '{name}' が見つかりません。
+msg.plugin_unavailable_title = プラグインが利用できません
+msg.plugin_unavailable = プラグイン '{name}' を読み込めませんでした。\n'plugins' フォルダが存在するか確認してください。\n\nエラー: {error}
+msg.plugin_error_title = プラグインエラー
+msg.plugin_error = プラグインを開く際にエラーが発生しました:\n{error}
+msg.batch_edit_title = 一括編集
+msg.batch_select_alias = 少なくとも1つのエイリアスを選択してください。
+msg.confirm_exit_title = 終了の確認
+msg.confirm_exit = 終了する前に変更を保存しますか?
+msg.confirm_discard = 保存されていない変更があります。破棄しますか?
+msg.confirm_delete_title = 削除の確認
+msg.confirm_delete = 選択した項目を本当に削除しますか?
+msg.create_oto_title = oto.iniを作成
+msg.create_oto = oto.iniが見つかりません。\nWAVファイルに基づいて新しいものを作成しますか?
+msg.oto_created = {count}エントリでoto.iniを作成しました。
+
+# ==============================================================================
+# 言語名
+# ==============================================================================
+
+language.name = 日本語 (日本)
+language.code = ja_JP

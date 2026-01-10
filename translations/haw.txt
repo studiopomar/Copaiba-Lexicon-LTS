@@ -1,0 +1,333 @@
+# ==============================================================================
+# COPAIBA LEXIKON - ʻŌLELO HAWAIʻI
+# ==============================================================================
+
+# ==============================================================================
+# PAPA KOHO NUI
+# ==============================================================================
+
+menu.file = Waihona
+menu.edit = Hoʻoponopono
+menu.view = Nānā
+menu.playback = Hoʻokani
+menu.settings = Hoʻonohonoho
+menu.encoding = Palapala helu
+menu.render = Hana kīhāpai
+menu.plugins = Mea hoʻohui
+menu.help = Kōkua
+menu.language = ʻŌlelo
+
+# Papa koho liʻiliʻi
+menu.gpu = GPU wikiwiki
+menu.enc_utau = UTAU Kahiko (Kepanī)
+menu.enc_other = ʻŌlelo ʻē aʻe
+menu.plugins_auto = Hoʻohana iakā
+menu.plugins_analysis = Nānā ʻike
+menu.plugins_manage = Hoʻomalu
+menu.plugins_convert = Hoʻololi
+menu.plugins_validate = Hoʻoia
+
+# ==============================================================================
+# PAPA WAIHONA
+# ==============================================================================
+
+file.open_voicebank = Wehe waihona leo...
+file.open_oto = Wehe oto.ini...
+file.open_project = Wehe papahana...
+file.save_project = Mālama papahana
+file.recent_projects = Nā papahana hou
+file.no_recent = (ʻAohe papahana hou)
+file.clear_recent = Holoi papa inoa
+file.save = Mālama
+file.save_as = Mālama me ka inoa...
+file.reveal = Wehe waihona leo
+file.reload = Hoʻouka hou (Ctrl+F5)
+file.exit = Haʻalele
+
+# ==============================================================================
+# PAPA HOʻOPONOPONO
+# ==============================================================================
+
+edit.undo = Hoʻihoʻi
+edit.redo = Hana hou
+edit.apply_preset = Hoʻohana preset
+edit.batch_edit = Hoʻoponopono nui...
+edit.snap = Hoʻopili i nā kiʻekiʻe
+edit.snap_mode = Ke ʻano hoʻopili
+edit.snap_peaks = Nā kiʻekiʻe
+edit.snap_zero = Ka hele ʻole
+edit.snap_none = ʻAohe
+edit.rename = Hoʻololi inoa
+edit.delete = Holoi inoa
+edit.duplicate = Pālua inoa
+edit.mark_complete = Kaha i ka pau
+edit.keybindings = Hoʻonohonoho pihi kī...
+
+# ==============================================================================
+# PAPA NĀNĀ
+# ==============================================================================
+
+view.minimap = Hōʻike palapala liʻiliʻi
+view.spectrogram = Hōʻike kiʻi nalu
+view.spectrogram_config = Hoʻonohonoho kiʻi nalu...
+view.gpu = GPU wikiwiki (>Kanario)
+view.gpu_info = ʻIke GPU...
+view.normalize = Hoʻomaʻamaʻa nalu
+view.persistent_zoom = Mau ka nui
+view.reset_layout = Hoʻomaka hou ke ʻano
+view.zoom_in = Nui +
+view.zoom_out = Nui -
+view.zoom_reset = Hoʻomaka hou ka nui
+view.cycle_theme = Hoʻololi kīʻaha nalu
+
+# ==============================================================================
+# KĪʻAHA NALU (NĀ WAIHOʻOLUʻU)
+# ==============================================================================
+
+theme.blue = Pōlū mālie
+theme.green = ʻŌmaʻomaʻo kikohoʻe
+theme.mono = Keʻokeʻo ma luna o ka ʻeleʻele
+theme.orange = ʻAlani amber
+theme.purple = Poni synthwave
+theme.cyan = Caiano terminal
+theme.pink = ʻĀkala neon
+theme.gold = Gula kahiko
+theme.red = ʻUlaʻula ikaika
+
+# ==============================================================================
+# PAPA HOʻOKANI
+# ==============================================================================
+
+playback.segment = Hoʻokani māhele (Spāke)
+playback.full = Hoʻokani a pau (Shift+Spāke)
+playback.sector = Hoʻokani māhele ma ke kaomi
+playback.sector_tooltip = I ka hoʻā ʻana, e kaomi ma ka nalu e hoʻokani ~200ms
+playback.device = Mīkini kani...
+playback.device_tooltip = Koho mīkini kani
+playback.auto_save = Mālama iakā
+
+# ==============================================================================
+# NĀ ʻANO HOʻOPONOPONO
+# ==============================================================================
+
+mode.srp = SRP - Hoʻopili Pili i ka Preutterance
+mode.srp_tooltip = I ka hoʻā ʻana, neʻe i ka preutterance e neʻe pū i ka offset a me ka cutoff.
+mode.srna = SRnA - Hoʻopili Pili i ʻAohe Mea
+mode.srna_tooltip = I ka hoʻā ʻana, hiki ke neʻe kēlā me kēia parameter paʻa ʻole.
+
+# ==============================================================================
+# NĀ PRESET
+# ==============================================================================
+
+preset.config = Hoʻonohonoho Preset...
+preset.cv = CV
+preset.vcv = VCV
+preset.vv = VV
+preset.vc = VC
+preset.minus_v = -V
+
+# ==============================================================================
+# NĀ PALAPALA HELU
+# ==============================================================================
+
+encoding.auto = Iakā (hoʻomaopopo)
+encoding.auto_tooltip = Hoʻomaopopo iakā i ka palapala helu
+encoding.utf8 = UTF-8 (OpenUTAU hou)
+encoding.utf8_tooltip = OpenUTAU maʻamau - kākoʻo i nā ʻōlelo a pau
+encoding.utf8_bom = UTF-8 BOM (Kūpono me OpenUTAU)
+encoding.utf8_bom_tooltip = UTF-8 me BOM - kūpono ʻoi aʻe me Windows
+encoding.cp932 = Shift-JIS / CP932 (UTAU Kepanī)
+encoding.cp932_tooltip = Maʻamau UTAU Kepanī kahiko
+encoding.eucjp = EUC-JP (Unix/Linux UTAU)
+encoding.eucjp_tooltip = Palapala helu Kepanī ʻē aʻe
+encoding.ansi = ANSI / Windows-1252 (Komohana)
+encoding.ansi_tooltip = Maʻamau Windows no nā ʻōlelo komohana
+encoding.latin1 = Latin-1 / ISO-8859-1 (ʻEulopa)
+encoding.latin1_tooltip = Palapala helu no nā ʻōlelo ʻEulopa komohana
+encoding.gbk = GBK / CP936 (Pākē maʻalahi)
+encoding.gbk_tooltip = Palapala helu no nā waihona leo Pākē maʻalahi
+encoding.euckr = EUC-KR / CP949 (Kōlea)
+encoding.euckr_tooltip = Palapala helu no nā waihona leo Kōlea
+
+# ==============================================================================
+# MEA HOʻOHUI
+# ==============================================================================
+
+plugin.manage = Hoʻomalu mea hoʻohui...
+plugin.auto_oto = Ka mea kanu - OTO Iakā...
+plugin.auto_oto_tooltip = Hoʻomaopopo iakā i ka offset a me ka cutoff
+plugin.vv_detector = Ka ʻōmaka - ʻImi VV...
+plugin.vv_detector_tooltip = ʻImi i nā neʻe leo huaʻōlelo ma nā inoa VV
+plugin.pitch = Ka ʻōhiʻai - Nānā leo...
+plugin.pitch_tooltip = Hōʻike i ka lōkahi kumu o ka leo
+plugin.mic_tuner = Ka pua - Hoʻoponopono miki...
+plugin.mic_tuner_tooltip = Hoʻoponopono i ka manawa maoli me ka miki
+plugin.rename = Ka paʻa - Hoʻololi inoa nui...
+plugin.rename_tooltip = Hoʻololi inoa i nā inoa he nui i ka manawa hoʻokahi
+plugin.sort = Ke koho - Hoʻonohonoho inoa...
+plugin.sort_tooltip = Hoʻonohonoho inoa ma nā ʻano like ʻole
+plugin.romaji = Ka poleni - Romaji ↔ Hiragana...
+plugin.romaji_tooltip = Hoʻololi inoa ma waena o Romaji a me Hiragana/Katakana
+plugin.duplicates = Ka ʻoki - ʻImi pālua...
+plugin.duplicates_tooltip = ʻImi i nā inoa pālua
+plugin.consistency = Ka nānā - Nānā like...
+plugin.consistency_tooltip = Hoʻoia i nā parameter a ʻimi i nā pilikia
+
+# ==============================================================================
+# NĀ KOLAMU PAPA
+# ==============================================================================
+
+column.favorite = Punahele
+column.filename = Waihona
+column.alias = Inoa
+column.offset = Offset
+column.overlap = Overlap
+column.preutter = Preutterance
+column.consonant = Konokana
+column.cutoff = Cutoff
+
+# ==============================================================================
+# NĀ MEMO KŪLANA
+# ==============================================================================
+
+status.loaded = Hoʻouka ʻia: {filename}
+status.saved = Mālama kūleʻa!
+status.saved_at = Mālama ʻia: {time}
+status.copied = Kope ʻia {count} pūnaewele
+status.pasted = Hoʻopili ʻia i {count} pūnaewele
+status.oto_created = Hana ʻia oto.ini me {count} ʻōlelo
+status.project_loaded = Hoʻouka ʻia ka papahana: {name}
+status.project_saved = Mālama ʻia ka papahana: {name}
+status.preset_applied = Hoʻohana ʻia preset {preset} i {count} inoa
+status.sector_on = Māhele hoʻā: kaomi e hoʻokani ~200ms
+status.sector_off = Māhele hoʻopa
+status.normalize_on = Hoʻomaʻamaʻa hoʻā
+status.normalize_off = Hoʻomaʻamaʻa hoʻopa
+status.sounddevice_unavailable = ʻAohe sounddevice
+status.clipboard_empty = Nele ka papakolli
+status.language_changed = Hoʻololi ʻia ka ʻōlelo i {lang}
+status.lines_completed = {done}/{total} pau
+status.ready = Mākaukau
+status.loading = Ke hoʻouka nei...
+status.saving = Ke mālama nei...
+
+# ==============================================================================
+# NĀ DIALOG A ME NĀ MEMO
+# ==============================================================================
+
+dialog.error = Hewa
+dialog.confirm = Hōʻoia
+dialog.warning = ʻŌlelo aʻo
+dialog.create_oto_title = Hana oto.ini
+dialog.create_oto_text = ʻAohe oto.ini ma kēia waihona.\n\nLoaʻa {count} mau faila .wav.\n\nE hana i oto.ini me nā ʻōlelo maʻamau?
+dialog.no_oto_wav = ʻAohe oto.ini a i ʻole faila .wav ma kēia waihona.
+dialog.oto_create_error = ʻAʻole hiki ke hana oto.ini:\n{error}
+dialog.reload_title = Hoʻouka hou
+dialog.reload_text = Aia nā loli i mālama ʻole ʻia. Hoʻouka hou i kekahi?
+dialog.no_oto_loaded = ʻAohe oto.ini i hoʻouka ʻia.
+dialog.oto_not_found = ʻAohe i loaʻa ka waihona oto.ini:\n{path}
+dialog.project_not_found = ʻAohe i loaʻa ka papahana:\n{path}
+dialog.delete_title = Hōʻoia Holoi
+dialog.delete_text = Makemake maoli ʻoe e holoi i ka inoa ma laina {row}?
+dialog.rename_title = Hoʻololi Inoa
+dialog.rename_text = Inoa hou:
+dialog.batch_edit_title = Hoʻoponopono Nui
+dialog.batch_edit_none = E koho i hoʻokahi inoa ma ka liʻiliʻi loa.
+dialog.load_error = Hewa hoʻouka
+dialog.save_error = Hewa mālama
+dialog.project_load_error = Hewa hoʻouka papahana
+dialog.project_save_error = Hewa mālama papahana
+
+# ==============================================================================
+# KAHUA KŪLANA / HOLOMUA
+# ==============================================================================
+
+progress.aliases = Inoa {current}/{total}
+progress.completed = {count} pau
+progress.session = Ke hoʻoponopono nei ʻoe no {time}
+
+# ==============================================================================
+# PALE HOʻOMAKA
+# ==============================================================================
+
+splash.loading = Ke hoʻouka nei...
+splash.init_audio = Ke hoʻomaka nei i ka leo...
+splash.init_gpu = Ke hoʻomaka nei i ka GPU...
+splash.init_plugins = Ke hoʻouka nei i nā mea hoʻohui...
+splash.init_ui = Ke hoʻomākaukau nei i ke ʻano...
+
+# ==============================================================================
+# PUKA NUI
+# ==============================================================================
+
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+
+# ==============================================================================
+# NĀ PIHI KĪ WIKIWIKI
+# ==============================================================================
+
+key.offset = Offset (maʻamau Q)
+key.overlap = Overlap (maʻamau W)
+key.preutter = Preutterance (maʻamau E)
+key.consonant = Konokana (maʻamau R)
+key.cutoff = Cutoff (maʻamau T)
+
+# ==============================================================================
+# PILI / KŌKUA
+# ==============================================================================
+
+help.about = E pili ana iā Copaiba Lexikon
+help.version = Mana
+help.author = Hana ʻia e
+help.website = Kahua pūnaewele
+
+# ==============================================================================
+# GPU
+# ==============================================================================
+
+gpu.enabled = GPU hoʻā: {name} ({memory}) [{backend}]
+gpu.disabled = GPU hoʻopa
+gpu.not_available = ʻAohe GPU i loaʻa
+gpu.info_title = ʻIke GPU
+
+# ==============================================================================
+# NĀ MEMO A ME NĀ HEWA
+# ==============================================================================
+
+msg.backup_error_title = Hewa Mālama
+msg.backup_error = ʻAʻole hiki ke hana mālama:\n{error}
+msg.load_error_title = Hewa Hoʻouka
+msg.load_error = Hewa i ka hoʻouka ʻana:\n{error}
+msg.no_oto_found = ʻAohe oto.ini ma kēia waihona.
+msg.file_not_found = ʻAohe waihona i loaʻa:\n{file}
+msg.save_error_title = Hewa Mālama
+msg.save_error = Hewa i ka mālama ʻana:\n{error}
+msg.saved = Mālama ʻia: {file}
+msg.saved_time = Ke hoʻoponopono nei ʻoe no {time}
+msg.gpu_info_title = ʻIke GPU
+msg.gpu_activate_failed = ʻAʻole hiki ke hoʻā i ka GPU
+msg.plugin_not_found_title = Hewa
+msg.plugin_not_found = ʻAohe mea hoʻohui '{name}'.
+msg.plugin_unavailable_title = ʻAohe Mea Hoʻohui
+msg.plugin_unavailable = ʻAʻole hiki ke hoʻouka i ka mea hoʻohui '{name}'.\nE nānā inā aia ka waihona 'plugins'.\n\nHewa: {error}
+msg.plugin_error_title = Hewa Mea Hoʻohui
+msg.plugin_error = Ua hewa i ka wehe ʻana i ka mea hoʻohui:\n{error}
+msg.batch_edit_title = Hoʻoponopono Nui
+msg.batch_select_alias = E koho i hoʻokahi inoa ma ka liʻiliʻi loa.
+msg.confirm_exit_title = Hōʻoia Haʻalele
+msg.confirm_exit = E mālama i nā loli ma mua o ka haʻalele ʻana?
+msg.confirm_discard = Aia nā loli i mālama ʻole ʻia. Hoʻohemo?
+msg.confirm_delete_title = Hōʻoia Holoi
+msg.confirm_delete = Makemake maoli ʻoe e holoi i nā mea i koho ʻia?
+msg.create_oto_title = Hana oto.ini
+msg.create_oto = ʻAohe oto.ini.\nE hana i mea hou ma muli o nā faila WAV?
+msg.oto_created = Ua hana ʻia ka oto.ini me {count} mau ʻōlelo.
+
+# ==============================================================================
+# INOA ʻŌLELO
+# ==============================================================================
+
+language.name = ʻŌlelo Hawaiʻi
+language.code = haw
