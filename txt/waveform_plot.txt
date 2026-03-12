@@ -1,0 +1,121 @@
+# waveform_plot.py
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QWidget
+from PySide6.QtGui import QColor
+import pyqtgraph as pg
+
+try:
+    from OpenGL import GL
+    OPENGL_AVAILABLE = True
+except ImportError:
+    OPENGL_AVAILABLE = False
+
+# Configurações globais do pyqtgraph
+pg.setConfigOptions(
+    antialias=OPENGL_AVAILABLE,
+    useOpenGL=OPENGL_AVAILABLE,
+    enableExperimental=False,
+)
+
+
+class WaveformPlotWidget(pg.PlotWidget):
+    """
+    Widget PyQtGraph para exibir a forma de onda principal.
+    Gerencia zoom, panning, grades, cursor e configurações visuais básicas.
+    """
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        # Configurações básicas do plot
+        self.setMenuEnabled(False)
+        self.showGrid(x=True, y=True, alpha=0.15)  # Mostra grades
+        self.setMouseEnabled(x=False, y=False)  # Desabilita zoom/pan do mouse por padrão
+        self.setBackground("#202020")  # Cor de fundo
+        self.getAxis("bottom").setPen(pg.mkPen("#aaaaaa"))  # Cor do eixo X
+        self.getAxis("left").setPen(pg.mkPen("#aaaaaa"))   # Cor do eixo Y
+        self.setDownsampling(auto=True, mode='peak')  # Downsampling para performance
+        self.setClipToView(True)  # Clipping para visão atual
+
+        # Habilitar OpenGL se disponível
+        if OPENGL_AVAILABLE:
+            self.useOpenGL(True)
+
+        # Desabilita o auto-range para controle manual
+        self.disableAutoRange()
+
+        # Linha do cursor (inicialmente oculta)
+        self._cursor_line = pg.InfiniteLine(
+            pos=0,
+            angle=90,  # Vertical
+            movable=False,
+            pen=pg.mkPen("#ffff00", width=1, style=Qt.DashLine),  # Amarelo tracejado
+        )
+        self._cursor_line.hide()
+        self.addItem(self._cursor_line)
+
+        # Curva principal para a forma de onda
+        self._curve = self.plot(
+            pen=pg.mkPen("#0077ff", width=1),  # Azul claro
+            antialias=OPENGL_AVAILABLE,
+        )
+
+        # Armazena o evento de roda original para sobrescrever
+        self._orig_wheel_event = self.wheelEvent
+        self.wheelEvent = self._on_wheel
+
+    def set_cursor_position(self, pos):
+        """Define a posição da linha do cursor e a mostra."""
+        self._cursor_line.setPos(pos)
+        self._cursor_line.show()
+
+    def hide_cursor(self):
+        """Oculta a linha do cursor."""
+        self._cursor_line.hide()
+
+    def set_wave_pen(self, pen):
+        """Atualiza a caneta (pen) usada para desenhar a forma de onda."""
+        self._curve.setPen(pen)
+
+    def set_background_color(self, color: QColor):
+        """Atualiza a cor de fundo do plot."""
+        self.setBackground(color)
+
+    def set_curve_data(self, x, y):
+        """Define os dados (x, y) para a curva principal."""
+        self._curve.setData(x, y)
+
+    def set_x_range(self, x1, x2, padding=0.0):
+        """Define o intervalo visível no eixo X."""
+        self.setXRange(x1, x2, padding=padding)
+
+    def set_y_range(self, y1, y2, padding=0.0):
+        """Define o intervalo visível no eixo Y."""
+        self.setYRange(y1, y2, padding=padding)
+
+    def get_view_range(self):
+        """Obtém o intervalo atual de visualização (x, y)."""
+        return self.viewRange()
+
+    def _on_wheel(self, ev):
+        """
+        Manipula o evento de roda do mouse para zoom e pan.
+        Sobrescreve o comportamento padrão.
+        """
+        # Este método pode ser expandido para incluir mais lógica de interação
+        # específica do plot, se necessário.
+        # Por enquanto, delega ao comportamento original se não for tratado aqui.
+        self._orig_wheel_event(ev)
+
+    def update_view(self, x_range=None, y_range=None):
+        """
+        Atualiza a visualização com base em intervalos X e Y fornecidos.
+        Se um intervalo for None, ele não é alterado.
+        """
+        if x_range:
+            x1, x2 = x_range
+            self.set_x_range(x1, x2)
+        if y_range:
+            y1, y2 = y_range
+            self.set_y_range(y1, y2)

@@ -1,0 +1,2263 @@
+# main.py
+
+from __future__ import annotations
+import sys
+import os
+import json
+import shutil
+from dataclasses import dataclass, asdict
+from pathlib import Path
+from datetime import datetime
+from typing import Optional, Union
+from PySide6.QtCore import Qt, QUrl, QTimer, QSettings, QByteArray, QMimeData
+from PySide6.QtGui import QAction, QActionGroup, QCloseEvent, QKeySequence, QPalette, QColor, QIcon, QFont
+from PySide6.QtWidgets import (
+    QApplication,
+    QAbstractItemView,
+    QDockWidget,
+    QFileDialog,
+    QInputDialog,
+    QMainWindow,
+    QMenu,
+    QMessageBox,
+    QStatusBar,
+    QTableWidget,
+    QTableWidgetItem,
+    QToolBar,
+    QWidget,
+    QLineEdit,
+    QLabel,
+    QCheckBox,
+    QVBoxLayout,
+    QHBoxLayout,
+    QGroupBox,
+    QSpinBox,
+    QPushButton,
+    QDialog,
+    QComboBox,
+    QFormLayout,
+    QGridLayout,
+    QFrame,
+    QScrollArea,
+    QTextEdit,
+    QHeaderView,
+)
+from PySide6.QtMultimedia import QAudioOutput, QMediaPlayer
+from copaiba import OtoFile, OtoEntry
+from waveform_widget import WaveformWidget
+from presets import PRESETS, Preset
+from spectrogram_config_widget import SpectrogramConfigWidget
+
+try:
+    import numpy as np
+    import sounddevice as sd
+    import wave
+
+    SOUNDDEVICE_AVAILABLE = True
+except ImportError:
+    SOUNDDEVICE_AVAILABLE = False
+
+try:
+    from backend_gpu import (
+        get_gpu_backend,
+        gpu_available,
+        gpu_enabled,
+        enable_gpu,
+        disable_gpu,
+        get_gpu_info,
+        get_device_name,
+        GPUVendor
+    )
+
+    GPU_BACKEND_AVAILABLE = True
+except ImportError:
+    GPU_BACKEND_AVAILABLE = False
+
+
+    def gpu_available():
+        return False
+
+
+    def gpu_enabled():
+        return False
+
+
+    def enable_gpu():
+        return False
+
+
+    def disable_gpu():
+        pass
+
+
+    def get_device_name():
+        return "CPU"
+
+
+@dataclass
+class CellEdit:
+    row: int
+    col: int
+    old: str
+    new: str
+
+
+@dataclass
+class RowEdit:
+    """Representa inserção/remoção de linha para undo/redo"""
+    row: int
+    data: list[str]
+    is_insert: bool
+
+
+@dataclass
+class ProjectData:
+    voicebank_path: str
+    oto_path: str
+    completed_aliases: list[str]
+    custom_presets: dict
+
+
+class AdvancedExitDialog(QDialog):
+    def __init__(self, parent, oto_path: Path, has_changes: bool,
+                 completed_count: int, total_count: int, last_saved: str = "Nunca"):
+        super().__init__(parent)
+        self.oto_path = oto_path
+        self.has_changes = has_changes
+        self.result_action = "cancel"
+
+        self.setWindowTitle("Confirmar Saída - Copaiba Lexikon")
+        self.setMinimumSize(500, 400)
+        self.setMaximumSize(600, 500)
+
+        layout = QVBoxLayout(self)
+        layout.setSpacing(15)
+
+        title_label = QLabel("⚠️ Confirmar Saída do Programa")
+        title_font = QFont()
+        title_font.setBold(True)
+        title_font.setPointSize(14)
+        title_label.setFont(title_font)
+        title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        title_label.setStyleSheet("color: #ff6b35; padding: 10px;")
+        layout.addWidget(title_label)
+
+        info_frame = QFrame()
+        info_frame.setFrameStyle(QFrame.Shape.Box)
+        info_frame.setStyleSheet("""
+            QFrame {
+                background-color: #2a2a2a;
+                border: 1px solid #555;
+                border-radius: 8px;
+                padding: 10px;
+            }
+        """)
+        info_layout = QVBoxLayout(info_frame)
+
+        project_info = QLabel(f"""
+<b>📁 Arquivo:</b> {oto_path.name}<br>
+<b>📂 Local:</b> {oto_path.parent}<br>
+<b>⏰ Último salvamento:</b> {last_saved}<br>
+<b>✅ Progresso:</b> {completed_count}/{total_count} aliases concluídos ({(completed_count / total_count * 100) if total_count > 0 else 0:.1f}%)
+        """)
+        project_info.setWordWrap(True)
+        info_layout.addWidget(project_info)
+
+        if has_changes:
+            changes_label = QLabel("🔴 <b>ATENÇÃO:</b> Existem alterações não salvas!")
+            changes_label.setStyleSheet(
+                "color: #ff4444; font-weight: bold; padding: 8px; background-color: #442222; border-radius: 4px;")
+        else:
+            changes_label = QLabel("✅ <b>OK:</b> Todas as alterações foram salvas.")
+            changes_label.setStyleSheet(
+                "color: #44ff44; font-weight: bold; padding: 8px; background-color: #224422; border-radius: 4px;")
+
+        changes_label.setWordWrap(True)
+        info_layout.addWidget(changes_label)
+        layout.addWidget(info_frame)
+
+        if has_changes:
+            recommend_frame = QFrame()
+            recommend_frame.setFrameStyle(QFrame.Shape.Box)
+            recommend_frame.setStyleSheet("""
+                QFrame {
+                    background-color: #2a2a42;
+                    border: 1px solid #4169e1;
+                    border-radius: 8px;
+                    padding: 10px;
+                }
+            """)
+            recommend_layout = QVBoxLayout(recommend_frame)
+            recommend_label = QLabel("""
+<b>💡 Recomendação:</b><br>
+• <b>Salvar:</b> Preserva todo o seu trabalho<br>
+• <b>Backup + Salvar:</b> Cria cópia de segurança antes de salvar<br>
+• <b>Descartar:</b> Perde todas as alterações desde o último salvamento<br>
+• <b>Cancelar:</b> Retorna ao programa para continuar editando
+            """)
+            recommend_label.setWordWrap(True)
+            recommend_layout.addWidget(recommend_label)
+            layout.addWidget(recommend_frame)
+
+        buttons_layout = QVBoxLayout()
+        buttons_layout.setSpacing(8)
+
+        if has_changes:
+            backup_save_btn = QPushButton("🛡️ Backup + Salvar (Recomendado)")
+            backup_save_btn.setStyleSheet(
+                "QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 14px; } QPushButton:hover { background-color: #5CBF60; }")
+            backup_save_btn.clicked.connect(lambda: self._set_result("backup"))
+            buttons_layout.addWidget(backup_save_btn)
+
+            save_btn = QPushButton("💾 Salvar Alterações")
+            save_btn.setStyleSheet(
+                "QPushButton { background-color: #2196F3; color: white; font-weight: bold; padding: 10px; border-radius: 6px; } QPushButton:hover { background-color: #1976D2; }")
+            save_btn.clicked.connect(lambda: self._set_result("save"))
+            buttons_layout.addWidget(save_btn)
+
+            separator = QFrame()
+            separator.setFrameShape(QFrame.Shape.HLine)
+            separator.setStyleSheet("color: #666;")
+            buttons_layout.addWidget(separator)
+
+            discard_btn = QPushButton("🗑️ Descartar Alterações e Sair")
+            discard_btn.setStyleSheet(
+                "QPushButton { background-color: #FF5722; color: white; padding: 10px; border-radius: 6px; } QPushButton:hover { background-color: #E64A19; }")
+            discard_btn.clicked.connect(lambda: self._set_result("discard"))
+            buttons_layout.addWidget(discard_btn)
+        else:
+            exit_btn = QPushButton("✅ Sair do Programa")
+            exit_btn.setStyleSheet(
+                "QPushButton { background-color: #4CAF50; color: white; font-weight: bold; padding: 12px; border-radius: 6px; font-size: 14px; } QPushButton:hover { background-color: #5CBF60; }")
+            exit_btn.clicked.connect(lambda: self._set_result("save"))
+            buttons_layout.addWidget(exit_btn)
+
+        cancel_btn = QPushButton("❌ Cancelar (Continuar Editando)")
+        cancel_btn.setStyleSheet(
+            "QPushButton { background-color: #9E9E9E; color: white; padding: 10px; border-radius: 6px; } QPushButton:hover { background-color: #757575; }")
+        cancel_btn.clicked.connect(lambda: self._set_result("cancel"))
+        buttons_layout.addWidget(cancel_btn)
+
+        layout.addLayout(buttons_layout)
+        self.setModal(True)
+
+        if has_changes:
+            backup_save_btn.setShortcut(QKeySequence("Ctrl+S"))
+            save_btn.setShortcut(QKeySequence("S"))
+            discard_btn.setShortcut(QKeySequence("D"))
+        cancel_btn.setShortcut(QKeySequence("Escape"))
+
+    def _set_result(self, action: str):
+        self.result_action = action
+        self.accept()
+
+    def get_action(self) -> str:
+        return self.result_action
+
+
+class AudioPlayer:
+    def __init__(self):
+        self._current_stream = None
+        self._audio_cache: dict[str, tuple[np.ndarray, int]] = {}
+        self._cache_max_size = 20
+
+    def stop(self):
+        if self._current_stream is not None:
+            try:
+                sd.stop()
+            except:
+                pass
+            self._current_stream = None
+
+    def _load_audio(self, path: Path) -> tuple[np.ndarray, int]:
+        key = str(path)
+        if key in self._audio_cache:
+            return self._audio_cache[key]
+        try:
+            with wave.open(str(path), 'rb') as wf:
+                framerate = wf.getframerate()
+                n_channels = wf.getnchannels()
+                sampwidth = wf.getsampwidth()
+                n_frames = wf.getnframes()
+                raw = wf.readframes(n_frames)
+            if sampwidth == 1:
+                data = np.frombuffer(raw, dtype=np.uint8).astype(np.float32)
+                data = (data - 128.0) / 128.0
+            elif sampwidth == 2:
+                data = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+                data /= 32768.0
+            else:
+                data = np.frombuffer(raw, dtype=np.int16).astype(np.float32)
+                max_val = np.max(np.abs(data))
+                if max_val > 0:
+                    data /= max_val
+            if n_channels > 1:
+                data = data.reshape(-1, n_channels)
+            if len(self._audio_cache) >= self._cache_max_size:
+                oldest = next(iter(self._audio_cache))
+                del self._audio_cache[oldest]
+            self._audio_cache[key] = (data, framerate)
+            return data, framerate
+        except Exception as e:
+            print(f"Erro ao carregar áudio: {e}")
+            return np.array([]), 44100
+
+    def play_segment(self, path: Path, start_ms: float, end_ms: float):
+        self.stop()
+        data, framerate = self._load_audio(path)
+        if data.size == 0:
+            return
+        start_sample = int(start_ms * framerate / 1000.0)
+        end_sample = int(end_ms * framerate / 1000.0)
+        start_sample = max(0, start_sample)
+        if len(data.shape) == 1:
+            end_sample = min(len(data), end_sample)
+            segment = data[start_sample:end_sample]
+        else:
+            end_sample = min(len(data), end_sample)
+            segment = data[start_sample:end_sample]
+        if segment.size == 0:
+            return
+        try:
+            sd.play(segment, framerate)
+            self._current_stream = True
+        except Exception as e:
+            print(f"Erro ao reproduzir: {e}")
+
+    def play_full(self, path: Path):
+        self.stop()
+        data, framerate = self._load_audio(path)
+        if data.size == 0:
+            return
+        try:
+            sd.play(data, framerate)
+            self._current_stream = True
+        except Exception as e:
+            print(f"Erro ao reproduzir: {e}")
+
+
+class PresetConfigWidget(QWidget):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._custom_presets = {}
+        self._presets_active = True
+        self._init_ui()
+        self._load_from_defaults()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
+
+        self._active_checkbox = QCheckBox("Presets Ativos")
+        self._active_checkbox.setChecked(True)
+        self._active_checkbox.setToolTip("Quando desativado, os botões de preset não terão efeito")
+        self._active_checkbox.toggled.connect(self._on_active_toggled)
+        layout.addWidget(self._active_checkbox)
+
+        self._preset_widgets = {}
+        preset_configs = [("cv", "CV"), ("vcv", "VCV"), ("vv", "VV"), ("vc", "VC"), ("minus_v", "-V")]
+
+        for key, label in preset_configs:
+            group = QGroupBox(f"Preset {label}")
+            group_layout = QGridLayout(group)
+            group_layout.setSpacing(5)
+
+            spin_overlap = QSpinBox()
+            spin_overlap.setRange(-1000, 1000)
+            spin_overlap.setSuffix(" ms")
+
+            spin_preutter = QSpinBox()
+            spin_preutter.setRange(0, 2000)
+            spin_preutter.setSuffix(" ms")
+
+            spin_consonant = QSpinBox()
+            spin_consonant.setRange(0, 2000)
+            spin_consonant.setSuffix(" ms")
+
+            spin_cutoff = QSpinBox()
+            spin_cutoff.setRange(-2000, 0)
+            spin_cutoff.setSuffix(" ms")
+
+            group_layout.addWidget(QLabel("Overlap:"), 0, 0)
+            group_layout.addWidget(spin_overlap, 0, 1)
+            group_layout.addWidget(QLabel("Preutter:"), 0, 2)
+            group_layout.addWidget(spin_preutter, 0, 3)
+            group_layout.addWidget(QLabel("Consonant:"), 1, 0)
+            group_layout.addWidget(spin_consonant, 1, 1)
+            group_layout.addWidget(QLabel("Cutoff:"), 1, 2)
+            group_layout.addWidget(spin_cutoff, 1, 3)
+
+            btn_reset = QPushButton("Reset")
+            btn_reset.clicked.connect(lambda checked, k=key: self._reset_preset(k))
+            group_layout.addWidget(btn_reset, 2, 0, 1, 4)
+
+            self._preset_widgets[key] = {
+                "overlap": spin_overlap, "preutter": spin_preutter,
+                "consonant": spin_consonant, "cutoff": spin_cutoff, "group": group,
+            }
+            layout.addWidget(group)
+        layout.addStretch()
+
+    def _on_active_toggled(self, checked: bool):
+        self._presets_active = checked
+        for key, widgets in self._preset_widgets.items():
+            widgets["group"].setEnabled(checked)
+
+    def is_active(self) -> bool:
+        return self._presets_active
+
+    def set_active(self, active: bool):
+        self._presets_active = active
+        self._active_checkbox.setChecked(active)
+
+    def _load_from_defaults(self):
+        for key, preset in PRESETS.items():
+            if key in self._preset_widgets:
+                widgets = self._preset_widgets[key]
+                widgets["overlap"].setValue(preset.overlap)
+                widgets["preutter"].setValue(preset.preutter)
+                widgets["consonant"].setValue(preset.consonant)
+                widgets["cutoff"].setValue(preset.cutoff)
+
+    def _reset_preset(self, key: str):
+        if key in PRESETS and key in self._preset_widgets:
+            preset = PRESETS[key]
+            widgets = self._preset_widgets[key]
+            widgets["overlap"].setValue(preset.overlap)
+            widgets["preutter"].setValue(preset.preutter)
+            widgets["consonant"].setValue(preset.consonant)
+            widgets["cutoff"].setValue(preset.cutoff)
+
+    def get_preset(self, key: str) -> Preset:
+        if key in self._preset_widgets:
+            widgets = self._preset_widgets[key]
+            return Preset(
+                name=f"Custom {key.upper()}",
+                overlap=widgets["overlap"].value(),
+                preutter=widgets["preutter"].value(),
+                consonant=widgets["consonant"].value(),
+                cutoff=widgets["cutoff"].value(),
+            )
+        return PRESETS.get(key, PRESETS["cv"])
+
+    def get_all_presets(self) -> dict:
+        result = {}
+        for key in self._preset_widgets:
+            widgets = self._preset_widgets[key]
+            result[key] = {
+                "overlap": widgets["overlap"].value(),
+                "preutter": widgets["preutter"].value(),
+                "consonant": widgets["consonant"].value(),
+                "cutoff": widgets["cutoff"].value(),
+            }
+        result["_active"] = self._presets_active
+        return result
+
+    def set_all_presets(self, presets: dict):
+        for key, values in presets.items():
+            if key == "_active":
+                self.set_active(values)
+                continue
+            if key in self._preset_widgets:
+                widgets = self._preset_widgets[key]
+                widgets["overlap"].setValue(values.get("overlap", 0))
+                widgets["preutter"].setValue(values.get("preutter", 0))
+                widgets["consonant"].setValue(values.get("consonant", 0))
+                widgets["cutoff"].setValue(values.get("cutoff", 0))
+
+
+class BatchEditDialog(QDialog):
+    """Diálogo para edição em lote de múltiplos aliases"""
+
+    def __init__(self, parent=None, selected_count: int = 0):
+        super().__init__(parent)
+        self.setWindowTitle("Edição em Lote")
+        self.setMinimumSize(400, 300)
+
+        self.result_values = {}
+
+        layout = QVBoxLayout(self)
+
+        info_label = QLabel(f"Editando {selected_count} alias(es) selecionado(s)")
+        info_label.setStyleSheet("font-weight: bold; padding: 10px;")
+        layout.addWidget(info_label)
+
+        form_layout = QFormLayout()
+
+        # Checkboxes para habilitar cada campo
+        self._enable_offset = QCheckBox()
+        self._spin_offset = QSpinBox()
+        self._spin_offset.setRange(-10000, 100000)
+        self._spin_offset.setSuffix(" ms")
+        self._spin_offset.setEnabled(False)
+        self._enable_offset.toggled.connect(self._spin_offset.setEnabled)
+        offset_layout = QHBoxLayout()
+        offset_layout.addWidget(self._enable_offset)
+        offset_layout.addWidget(self._spin_offset)
+        form_layout.addRow("Offset:", offset_layout)
+
+        self._enable_overlap = QCheckBox()
+        self._spin_overlap = QSpinBox()
+        self._spin_overlap.setRange(-1000, 1000)
+        self._spin_overlap.setSuffix(" ms")
+        self._spin_overlap.setEnabled(False)
+        self._enable_overlap.toggled.connect(self._spin_overlap.setEnabled)
+        overlap_layout = QHBoxLayout()
+        overlap_layout.addWidget(self._enable_overlap)
+        overlap_layout.addWidget(self._spin_overlap)
+        form_layout.addRow("Overlap:", overlap_layout)
+
+        self._enable_preutter = QCheckBox()
+        self._spin_preutter = QSpinBox()
+        self._spin_preutter.setRange(0, 2000)
+        self._spin_preutter.setSuffix(" ms")
+        self._spin_preutter.setEnabled(False)
+        self._enable_preutter.toggled.connect(self._spin_preutter.setEnabled)
+        preutter_layout = QHBoxLayout()
+        preutter_layout.addWidget(self._enable_preutter)
+        preutter_layout.addWidget(self._spin_preutter)
+        form_layout.addRow("Preutter:", preutter_layout)
+
+        self._enable_consonant = QCheckBox()
+        self._spin_consonant = QSpinBox()
+        self._spin_consonant.setRange(0, 2000)
+        self._spin_consonant.setSuffix(" ms")
+        self._spin_consonant.setEnabled(False)
+        self._enable_consonant.toggled.connect(self._spin_consonant.setEnabled)
+        consonant_layout = QHBoxLayout()
+        consonant_layout.addWidget(self._enable_consonant)
+        consonant_layout.addWidget(self._spin_consonant)
+        form_layout.addRow("Consonant:", consonant_layout)
+
+        self._enable_cutoff = QCheckBox()
+        self._spin_cutoff = QSpinBox()
+        self._spin_cutoff.setRange(-10000, 0)
+        self._spin_cutoff.setSuffix(" ms")
+        self._spin_cutoff.setEnabled(False)
+        self._enable_cutoff.toggled.connect(self._spin_cutoff.setEnabled)
+        cutoff_layout = QHBoxLayout()
+        cutoff_layout.addWidget(self._enable_cutoff)
+        cutoff_layout.addWidget(self._spin_cutoff)
+        form_layout.addRow("Cutoff:", cutoff_layout)
+
+        layout.addLayout(form_layout)
+
+        # Botões
+        buttons_layout = QHBoxLayout()
+        apply_btn = QPushButton("Aplicar")
+        apply_btn.clicked.connect(self._apply)
+        cancel_btn = QPushButton("Cancelar")
+        cancel_btn.clicked.connect(self.reject)
+        buttons_layout.addWidget(apply_btn)
+        buttons_layout.addWidget(cancel_btn)
+        layout.addLayout(buttons_layout)
+
+    def _apply(self):
+        if self._enable_offset.isChecked():
+            self.result_values["offset"] = self._spin_offset.value()
+        if self._enable_overlap.isChecked():
+            self.result_values["overlap"] = self._spin_overlap.value()
+        if self._enable_preutter.isChecked():
+            self.result_values["preutter"] = self._spin_preutter.value()
+        if self._enable_consonant.isChecked():
+            self.result_values["consonant"] = self._spin_consonant.value()
+        if self._enable_cutoff.isChecked():
+            self.result_values["cutoff"] = self._spin_cutoff.value()
+        self.accept()
+
+    def get_values(self) -> dict:
+        return self.result_values
+
+
+class MainWindow(QMainWindow):
+    COLUMN_HEADERS = ["✓", "Áudios", "Alias", "Offset", "Overlap", "Preutter", "Consonant", "Cutoff"]
+    COL_FAV, COL_FILENAME, COL_ALIAS, COL_OFFSET, COL_OVERLAP, COL_PREUTTER, COL_CONSONANT, COL_CUTOFF = range(8)
+
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Copaiba Lexikon | e-LTS v4.4.0se | Edição Estável")
+        self.resize(1280, 550)
+        self.settings = QSettings("MiSC Labs", "Copaiba")
+
+        self._oto = OtoFile()
+        self._current_path: Path | None = None
+        self._voicebank_dir: Path | None = None
+        self._encoding: str = "auto"
+        self._dirty: bool = False
+        self._updating_from_code: bool = False
+        self._in_undo_redo: bool = False
+        self._undo_stack: list[Union[list[CellEdit], RowEdit]] = []
+        self._redo_stack: list[Union[list[CellEdit], RowEdit]] = []
+        self._last_selected_row: int | None = None
+        self._keep_zoom_on_alias_change: bool = True
+        self._completed_aliases: set[str] = set()
+        self._project_file: Path | None = None
+        self._last_saved_time: datetime | None = None
+        self._clipboard_data: list[list[str]] = []
+        self._clipboard_cols: list[int] = []
+        self._last_shift_click_row: int | None = None
+        self._srp_enabled: bool = False
+
+        if SOUNDDEVICE_AVAILABLE:
+            self._audio_player = AudioPlayer()
+        else:
+            self._audio_player = None
+            self._audio_output = QAudioOutput(self)
+            self._player = QMediaPlayer(self)
+            self._player.setAudioOutput(self._audio_output)
+
+        self._segment_timer: QTimer | None = None
+        self._auto_save_timer: QTimer | None = None
+        self._auto_save_interval: int = 300
+        self._backup_count: int = 5
+
+        self._setup_ui()
+        self._create_actions()
+        self._create_menus()
+        self._create_toolbar()
+        self._setup_status_bar()
+        self._update_undo_redo_actions()
+        self._load_settings()
+
+    def _setup_ui(self):
+        self.table = QTableWidget(self)
+        self.table.setColumnCount(len(self.COLUMN_HEADERS))
+        self.table.setHorizontalHeaderLabels(self.COLUMN_HEADERS)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectItems)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.table.setEditTriggers(
+            QAbstractItemView.EditTrigger.DoubleClicked |
+            QAbstractItemView.EditTrigger.SelectedClicked |
+            QAbstractItemView.EditTrigger.EditKeyPressed
+        )
+        self.table.verticalHeader().setVisible(False)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.setShowGrid(True)
+        self.table.setColumnWidth(self.COL_FAV, 30)
+        self.table.setDragDropMode(QAbstractItemView.DragDropMode.NoDragDrop)
+        self.table.setStyleSheet("""
+            QTableWidget::item:selected { background-color: #ffe9a3; color: black; }
+            QTableWidget::item { padding: 2px; }
+        """)
+        self.table.itemChanged.connect(self._on_item_changed)
+        self.table.itemSelectionChanged.connect(self._on_selection_changed)
+        self.table.currentCellChanged.connect(self._on_current_cell_changed)
+        self.table.installEventFilter(self)
+        self.table.mousePressEvent = self._table_mouse_press_event
+        self.table.mouseReleaseEvent = self._table_mouse_release_event
+
+        self.filter_bar = QLineEdit(self)
+        self.filter_bar.setPlaceholderText("Filtrar aliases...")
+        self.filter_bar.textChanged.connect(self._filter_table)
+
+        table_widget = QWidget()
+        table_layout = QVBoxLayout(table_widget)
+        table_layout.addWidget(self.filter_bar)
+        table_layout.addWidget(self.table)
+
+        self.waveform = WaveformWidget(self)
+        self.waveform.set_snap_enabled(False)
+        self.waveform.set_edit_callback(self._entry_edited_from_waveform)
+        self.waveform.aliasStepRequested.connect(self._step_alias)
+        self.waveform.set_key_handler(self._handle_waveform_key)
+
+        self.preset_config = PresetConfigWidget(self)
+
+        # Widget de configuração do espectrograma
+        self.spectrogram_config = SpectrogramConfigWidget(self)
+
+        # Conecta sinais do espectrograma
+        self.spectrogram_config.gammaChanged.connect(
+            lambda v: self.waveform._spectrogram_widget.set_gamma(v))
+        self.spectrogram_config.contrastChanged.connect(
+            lambda v: self.waveform._spectrogram_widget.set_contrast(v))
+        self.spectrogram_config.colormapChanged.connect(
+            lambda v: self.waveform._spectrogram_widget.set_colormap(v))
+        self.spectrogram_config.freqRangeChanged.connect(
+            lambda min_f, max_f: self.waveform._spectrogram_widget.set_freq_range(min_f, max_f))
+        self.spectrogram_config.qualityChanged.connect(
+            lambda q: self.waveform._spectrogram_widget.set_resolution_quality(q))
+        self.spectrogram_config.gpuChanged.connect(
+            lambda g: self.waveform._spectrogram_widget.set_use_gpu(g))
+
+        # Verifica GPU
+        if GPU_BACKEND_AVAILABLE and gpu_available():
+            self.spectrogram_config.set_gpu_available(True)
+        else:
+            self.spectrogram_config.set_gpu_available(False)
+
+        dock_params = QDockWidget("Parâmetros", self)
+        dock_params.setWidget(table_widget)
+        dock_params.setObjectName("DockParams")
+        dock_params.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.TopDockWidgetArea, dock_params)
+
+        dock_wave = QDockWidget("Waveform", self)
+        dock_wave.setWidget(self.waveform)
+        dock_wave.setObjectName("DockWaveform")
+        dock_wave.setFeatures(QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable)
+        self.addDockWidget(Qt.BottomDockWidgetArea, dock_wave)
+
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self.preset_config)
+        scroll_area.setWidgetResizable(True)
+        scroll_area.setMinimumWidth(300)
+
+        dock_presets = QDockWidget("Configuração de Presets", self)
+        dock_presets.setWidget(scroll_area)
+        dock_presets.setObjectName("DockPresets")
+        dock_presets.setFeatures(
+            QDockWidget.DockWidgetMovable | QDockWidget.DockWidgetFloatable | QDockWidget.DockWidgetClosable)
+        self.addDockWidget(Qt.RightDockWidgetArea, dock_presets)
+        dock_presets.hide()
+        self._dock_presets = dock_presets
+
+        # Dock de configuração do espectrograma
+        scroll_area_spec = QScrollArea()
+        scroll_area_spec.setWidget(self.spectrogram_config)
+        scroll_area_spec.setWidgetResizable(True)
+        scroll_area_spec.setMinimumWidth(320)
+
+        dock_spectrogram_config = QDockWidget("Configuração do Espectrograma", self)
+        dock_spectrogram_config.setWidget(scroll_area_spec)
+        dock_spectrogram_config.setObjectName("DockSpectrogramConfig")
+        dock_spectrogram_config.setFeatures(
+            QDockWidget.DockWidgetMovable |
+            QDockWidget.DockWidgetFloatable |
+            QDockWidget.DockWidgetClosable
+        )
+        self.addDockWidget(Qt.RightDockWidgetArea, dock_spectrogram_config)
+        dock_spectrogram_config.hide()
+        self._dock_spectrogram_config = dock_spectrogram_config
+
+        self.resizeDocks([dock_params, dock_wave], [250, 400], Qt.Vertical)
+
+        central = QWidget(self)
+        self.setCentralWidget(central)
+
+    def _setup_status_bar(self):
+        status = QStatusBar(self)
+        self.setStatusBar(status)
+        self._gpu_status_label = QLabel()
+        self._update_gpu_status_label()
+        status.addPermanentWidget(self._gpu_status_label)
+        self._progress_label = QLabel("0/0 concluídos")
+        status.addPermanentWidget(self._progress_label)
+        self._line_indicator_label = QLabel("Linha: -/-")
+        status.addPermanentWidget(self._line_indicator_label)
+
+    def _update_gpu_status_label(self):
+        if GPU_BACKEND_AVAILABLE and gpu_enabled():
+            device = get_device_name()
+            self._gpu_status_label.setText(f"🎮 GPU: {device}")
+            self._gpu_status_label.setStyleSheet("color: #00ff00;")
+        elif GPU_BACKEND_AVAILABLE and gpu_available():
+            self._gpu_status_label.setText("🎮 GPU: Disponível (desativada)")
+            self._gpu_status_label.setStyleSheet("color: #ffaa00;")
+        else:
+            self._gpu_status_label.setText("💻 CPU")
+            self._gpu_status_label.setStyleSheet("color: #888888;")
+
+    def _table_mouse_press_event(self, event):
+        if event.button() == Qt.LeftButton:
+            pos = event.position().toPoint()
+            item = self.table.itemAt(pos)
+            if item:
+                row = item.row()
+                if event.modifiers() & Qt.ShiftModifier:
+                    if self._last_shift_click_row is not None:
+                        start_row = min(self._last_shift_click_row, row)
+                        end_row = max(self._last_shift_click_row, row)
+                        self.table.clearSelection()
+                        for r in range(start_row, end_row + 1):
+                            for c in range(self.table.columnCount()):
+                                if self.table.item(r, c):
+                                    self.table.item(r, c).setSelected(True)
+                    else:
+                        self._last_shift_click_row = row
+                        QTableWidget.mousePressEvent(self.table, event)
+                else:
+                    self._last_shift_click_row = row
+                    QTableWidget.mousePressEvent(self.table, event)
+            else:
+                QTableWidget.mousePressEvent(self.table, event)
+        else:
+            QTableWidget.mousePressEvent(self.table, event)
+
+    def _table_mouse_release_event(self, event):
+        QTableWidget.mouseReleaseEvent(self.table, event)
+        self._update_line_indicator()
+
+    def keyPressEvent(self, event):
+        if event.matches(QKeySequence.StandardKey.Copy):
+            self._copy_selection()
+            event.accept()
+            return
+        elif event.matches(QKeySequence.StandardKey.Paste):
+            self._paste_selection()
+            event.accept()
+            return
+        elif event.key() == Qt.Key.Key_Space:
+            if event.modifiers() & Qt.ShiftModifier:
+                self._play_full_audio()
+            else:
+                self._play_segment()
+            event.accept()
+            return
+        super().keyPressEvent(event)
+
+    def _copy_selection(self):
+        selection = self.table.selectedItems()
+        if not selection:
+            return
+        items_by_position = {}
+        cols_used = set()
+        for item in selection:
+            row, col = item.row(), item.column()
+            if row not in items_by_position:
+                items_by_position[row] = {}
+            items_by_position[row][col] = item.text()
+            cols_used.add(col)
+        if items_by_position:
+            min_row = min(items_by_position.keys())
+            max_row = max(items_by_position.keys())
+            min_col = min(cols_used)
+            max_col = max(cols_used)
+            self._clipboard_data = []
+            self._clipboard_cols = list(range(min_col, max_col + 1))
+            for r in range(min_row, max_row + 1):
+                row_data = []
+                for c in range(min_col, max_col + 1):
+                    if r in items_by_position and c in items_by_position[r]:
+                        row_data.append(items_by_position[r][c])
+                    else:
+                        row_data.append("")
+                self._clipboard_data.append(row_data)
+            self.statusBar().showMessage(f"Copiadas {len(selection)} células", 2000)
+
+    def _paste_selection(self):
+        if not self._clipboard_data:
+            self.statusBar().showMessage("Clipboard vazio", 2000)
+            return
+        selection = self.table.selectedItems()
+        if not selection:
+            return
+        selected_rows = sorted(set(item.row() for item in selection))
+        selected_cols = sorted(set(item.column() for item in selection))
+        edits: list[CellEdit] = []
+        self._updating_from_code = True
+        try:
+            if len(self._clipboard_data) == 1 and len(self._clipboard_data[0]) == 1:
+                value = self._clipboard_data[0][0]
+                for item in selection:
+                    row, col = item.row(), item.column()
+                    if col == self.COL_FAV:
+                        continue
+                    old_val = item.text()
+                    new_val = value
+                    if col in [self.COL_PREUTTER, self.COL_CONSONANT]:
+                        try:
+                            num_val = int(round(float(new_val)))
+                            if num_val < 0:
+                                new_val = "0"
+                        except ValueError:
+                            continue
+                    if old_val != new_val:
+                        edits.append(CellEdit(row, col, old_val, new_val))
+                        item.setText(new_val)
+                        item.setData(Qt.ItemDataRole.UserRole, new_val)
+            else:
+                clipboard_width = len(self._clipboard_data[0]) if self._clipboard_data else 0
+                clipboard_height = len(self._clipboard_data)
+                for idx, target_row in enumerate(selected_rows):
+                    clipboard_row_idx = idx % clipboard_height
+                    clipboard_row = self._clipboard_data[clipboard_row_idx]
+                    for col_idx, target_col in enumerate(selected_cols):
+                        if target_col == self.COL_FAV:
+                            continue
+                        clipboard_col_idx = col_idx % clipboard_width
+                        value = clipboard_row[clipboard_col_idx] if clipboard_col_idx < len(clipboard_row) else ""
+                        if not value:
+                            continue
+                        item = self.table.item(target_row, target_col)
+                        if item is None:
+                            continue
+                        old_val = item.text()
+                        new_val = value
+                        if target_col in [self.COL_PREUTTER, self.COL_CONSONANT]:
+                            try:
+                                num_val = int(round(float(new_val)))
+                                if num_val < 0:
+                                    new_val = "0"
+                            except ValueError:
+                                continue
+                        if old_val != new_val:
+                            edits.append(CellEdit(target_row, target_col, old_val, new_val))
+                            item.setText(new_val)
+                            item.setData(Qt.ItemDataRole.UserRole, new_val)
+        finally:
+            self._updating_from_code = False
+        if edits:
+            self._push_undo(edits)
+            self.statusBar().showMessage(f"Colado em {len(edits)} células", 2000)
+            self._load_waveform_for_current_row()
+
+    def _update_line_indicator(self):
+        current_row = self.table.currentRow()
+        total_rows = self.table.rowCount()
+        if current_row >= 0:
+            self._line_indicator_label.setText(f"Linha: {current_row + 1}/{total_rows}")
+        else:
+            self._line_indicator_label.setText("Linha: -/-")
+
+    def _get_last_saved_string(self) -> str:
+        if self._last_saved_time is None:
+            return "Nunca"
+        now = datetime.now()
+        diff = now - self._last_saved_time
+        if diff.total_seconds() < 60:
+            return "Agora há pouco"
+        elif diff.total_seconds() < 3600:
+            minutes = int(diff.total_seconds() / 60)
+            return f"Há {minutes} minuto{'s' if minutes > 1 else ''}"
+        elif diff.total_seconds() < 86400:
+            hours = int(diff.total_seconds() / 3600)
+            return f"Há {hours} hora{'s' if hours > 1 else ''}"
+        else:
+            return self._last_saved_time.strftime("%d/%m/%Y às %H:%M")
+
+    def _create_backup(self) -> bool:
+        if self._current_path is None or not self._current_path.exists():
+            return False
+        try:
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            backup_name = f"{self._current_path.stem}_backup_{timestamp}{self._current_path.suffix}"
+            backup_path = self._current_path.parent / backup_name
+            shutil.copy2(self._current_path, backup_path)
+            backup_pattern = f"{self._current_path.stem}_backup_*{self._current_path.suffix}"
+            backups = list(self._current_path.parent.glob(backup_pattern))
+            backups.sort(key=lambda x: x.stat().st_mtime, reverse=True)
+            for old_backup in backups[10:]:
+                try:
+                    old_backup.unlink()
+                except OSError:
+                    pass
+            return True
+        except Exception as e:
+            QMessageBox.warning(self, "Erro no Backup", f"Não foi possível criar backup:\n{e}")
+            return False
+
+    def _create_actions(self):
+        self.act_open_voicebank = QAction("Abrir voicebank...", self)
+        self.act_open_voicebank.triggered.connect(self.open_voicebank_folder)
+
+        self.act_open_oto = QAction("Abrir oto.ini...", self)
+        self.act_open_oto.setShortcut(QKeySequence("Ctrl+O"))
+        self.act_open_oto.triggered.connect(self.open_oto)
+
+        self.act_open_project = QAction("Abrir projeto...", self)
+        self.act_open_project.setShortcut(QKeySequence("Ctrl+Shift+O"))
+        self.act_open_project.triggered.connect(self.open_project)
+
+        self.act_save_project = QAction("Salvar projeto", self)
+        self.act_save_project.setShortcut(QKeySequence("Ctrl+Shift+P"))
+        self.act_save_project.triggered.connect(self.save_project)
+
+        self.act_reveal_voicebank = QAction("Abrir pasta do voicebank", self)
+        self.act_reveal_voicebank.setShortcut(QKeySequence("Ctrl+P"))
+        self.act_reveal_voicebank.triggered.connect(self.reveal_voicebank)
+
+        self.act_save = QAction("Salvar", self)
+        self.act_save.setShortcut(QKeySequence("Ctrl+S"))
+        self.act_save.triggered.connect(self.save_oto)
+
+        self.act_save_as = QAction("Salvar como...", self)
+        self.act_save_as.setShortcut(QKeySequence("Ctrl+Shift+S"))
+        self.act_save_as.triggered.connect(self.save_oto_as)
+
+        self.act_reload = QAction("Recarregar (Ctrl+F5)", self)
+        self.act_reload.setShortcut(QKeySequence("Ctrl+F5"))
+        self.act_reload.triggered.connect(self.reload_oto)
+
+        self.act_quit = QAction("Sair", self)
+        self.act_quit.triggered.connect(self.close)
+
+        self.act_zoom_in = QAction("Zoom +", self)
+        self.act_zoom_in.triggered.connect(self.waveform.zoom_in)
+
+        self.act_zoom_out = QAction("Zoom -", self)
+        self.act_zoom_out.triggered.connect(self.waveform.zoom_out)
+
+        self.act_zoom_reset = QAction("Reset zoom", self)
+        self.act_zoom_reset.triggered.connect(self.waveform.reset_zoom)
+
+        self.act_toggle_auto_save = QAction("Salvar automaticamente", self)
+        self.act_toggle_auto_save.setCheckable(True)
+        self.act_toggle_auto_save.triggered.connect(self._toggle_auto_save)
+
+        self.act_batch_edit = QAction("Editar em lote...", self)
+        self.act_batch_edit.triggered.connect(self._open_batch_edit_dialog)
+
+        self.act_play_segment = QAction("Tocar segmento (Espaço)", self)
+        self.act_play_segment.setShortcut(QKeySequence(Qt.Key_Space))
+        self.act_play_segment.triggered.connect(self._play_segment)
+
+        self.act_play_full = QAction("Tocar áudio completo (Shift+Espaço)", self)
+        self.act_play_full.setShortcut(QKeySequence("Shift+Space"))
+        self.act_play_full.triggered.connect(self._play_full_audio)
+
+        self.act_preset_cv = QAction("CV", self)
+        self.act_preset_cv.triggered.connect(lambda: self.apply_preset("cv"))
+
+        self.act_preset_vcv = QAction("VCV", self)
+        self.act_preset_vcv.triggered.connect(lambda: self.apply_preset("vcv"))
+
+        self.act_preset_vv = QAction("VV", self)
+        self.act_preset_vv.triggered.connect(lambda: self.apply_preset("vv"))
+
+        self.act_preset_vc = QAction("VC", self)
+        self.act_preset_vc.triggered.connect(lambda: self.apply_preset("vc"))
+
+        self.act_preset_minus_v = QAction("-V", self)
+        self.act_preset_minus_v.triggered.connect(lambda: self.apply_preset("minus_v"))
+
+        self.act_show_preset_config = QAction("Configurar Presets...", self)
+        self.act_show_preset_config.triggered.connect(self._toggle_preset_dock)
+
+        self.act_snap = QAction("Snap em picos", self)
+        self.act_snap.setCheckable(True)
+        self.act_snap.setChecked(False)
+        self.act_snap.triggered.connect(lambda checked: self.waveform.set_snap_enabled(checked))
+
+        self.act_snap_peaks = QAction("Picos", self, checkable=True)
+        self.act_snap_zero_crossing = QAction("Cruzamento de zero", self, checkable=True)
+        self.act_snap_none = QAction("Nenhum", self, checkable=True)
+
+        self.snap_mode_group = QActionGroup(self)
+        self.snap_mode_group.setExclusive(True)
+        for act in [self.act_snap_peaks, self.act_snap_zero_crossing, self.act_snap_none]:
+            self.snap_mode_group.addAction(act)
+        self.act_snap_peaks.setChecked(True)
+        self.act_snap_peaks.triggered.connect(lambda: self.waveform.set_snap_mode("peaks"))
+        self.act_snap_zero_crossing.triggered.connect(lambda: self.waveform.set_snap_mode("zero_crossing"))
+        self.act_snap_none.triggered.connect(lambda: self.waveform.set_snap_mode("none"))
+
+        self.act_encoding_auto = QAction("Auto (detectar)", self, checkable=True)
+        self.act_encoding_utf8 = QAction("UTF-8 (OpenUtau)", self, checkable=True)
+        self.act_encoding_cp932 = QAction("Shift-JIS / cp932 (UTAU JP)", self, checkable=True)
+        self.act_encoding_ansi = QAction("ANSI / mbcs (Windows)", self, checkable=True)
+
+        self.encoding_group = QActionGroup(self)
+        self.encoding_group.setExclusive(True)
+        for act in [self.act_encoding_auto, self.act_encoding_utf8, self.act_encoding_cp932, self.act_encoding_ansi]:
+            self.encoding_group.addAction(act)
+        self.act_encoding_auto.setChecked(True)
+        self.act_encoding_auto.triggered.connect(lambda: self._set_encoding("auto"))
+        self.act_encoding_utf8.triggered.connect(lambda: self._set_encoding("utf-8"))
+        self.act_encoding_cp932.triggered.connect(lambda: self._set_encoding("cp932"))
+        self.act_encoding_ansi.triggered.connect(lambda: self._set_encoding("mbcs"))
+
+        self.act_wave_blue = QAction("Azul suave", self, checkable=True)
+        self.act_wave_green = QAction("Verde digital", self, checkable=True)
+        self.act_wave_mono = QAction("Branco sobre preto", self, checkable=True)
+
+        self.wave_color_group = QActionGroup(self)
+        self.wave_color_group.setExclusive(True)
+        for act in [self.act_wave_blue, self.act_wave_green, self.act_wave_mono]:
+            self.wave_color_group.addAction(act)
+        self.act_wave_blue.setChecked(True)
+        self.act_wave_blue.triggered.connect(lambda: self.waveform.set_wave_colors("#0077ff", "#cfe8ff"))
+        self.act_wave_green.triggered.connect(lambda: self.waveform.set_wave_colors("#2dff88", "#c9ffe0"))
+        self.act_wave_mono.triggered.connect(lambda: self.waveform.set_wave_colors("#ffffff", "#000000"))
+
+        self.act_undo = QAction("Desfazer", self)
+        self.act_undo.setShortcut(QKeySequence("Ctrl+Z"))
+        self.act_undo.triggered.connect(self.undo)
+
+        self.act_redo = QAction("Refazer", self)
+        self.act_redo.setShortcut(QKeySequence("Ctrl+Y"))
+        self.act_redo.triggered.connect(self.redo)
+
+        self.act_rename_alias = QAction("Renomear alias", self)
+        self.act_rename_alias.setShortcut(QKeySequence("Ctrl+R"))
+        self.act_rename_alias.triggered.connect(self.rename_alias)
+
+        self.act_delete_alias = QAction("Deletar alias", self)
+        self.act_delete_alias.setShortcut(QKeySequence("Ctrl+D"))
+        self.act_delete_alias.triggered.connect(self.delete_alias)
+
+        self.act_duplicate_alias = QAction("Duplicar alias", self)
+        self.act_duplicate_alias.setShortcut(QKeySequence("Ctrl+I"))
+        self.act_duplicate_alias.triggered.connect(self.duplicate_alias)
+
+        self.act_mark_complete = QAction("Marcar como concluído", self)
+        self.act_mark_complete.setShortcut(QKeySequence("Ctrl+M"))
+        self.act_mark_complete.triggered.connect(self._toggle_complete_current)
+
+        self.act_show_minimap = QAction("Mostrar mini mapa", self)
+        self.act_show_minimap.setCheckable(True)
+        self.act_show_minimap.setChecked(True)
+        self.act_show_minimap.triggered.connect(self.toggle_minimap)
+
+        self.act_show_spectrogram = QAction("Mostrar espectrograma", self)
+        self.act_show_spectrogram.setCheckable(True)
+        self.act_show_spectrogram.setChecked(False)
+        self.act_show_spectrogram.triggered.connect(self._toggle_spectrogram)
+
+        self.act_spectrogram_config = QAction("Configurar Espectrograma...", self)
+        self.act_spectrogram_config.triggered.connect(self._toggle_spectrogram_config_dock)
+
+        self.act_toggle_gpu = QAction("Aceleração de GPU (>Canário)", self)
+        self.act_toggle_gpu.setCheckable(True)
+        self.act_toggle_gpu.setChecked(False)
+        self.act_toggle_gpu.triggered.connect(self._toggle_gpu_acceleration)
+
+        self.act_gpu_info = QAction("Informações da GPU...", self)
+        self.act_gpu_info.triggered.connect(self._show_gpu_info)
+
+        self.act_manage_plugins = QAction("Gerenciar Plugins (>Canário)", self)
+        self.act_manage_plugins.setEnabled(False)
+
+        self.act_reset_layout = QAction("Resetar layout dos painéis", self)
+        self.act_reset_layout.setShortcut(QKeySequence("Ctrl+Shift+R"))
+        self.act_reset_layout.triggered.connect(self._reset_layout)
+
+        self.act_toggle_srp = QAction("SRP - Snap Relativo de Preutterance", self)
+        self.act_toggle_srp.setCheckable(True)
+        self.act_toggle_srp.setChecked(False)
+        self.act_toggle_srp.setToolTip("Quando ativo, mover a preutterance move o offset e cutoff proporcionalmente.")
+        self.act_toggle_srp.triggered.connect(self._toggle_srp)
+
+        self.act_persistent_zoom = QAction("Zoom persistente", self)
+        self.act_persistent_zoom.setCheckable(True)
+        self.act_persistent_zoom.setChecked(True)
+        self.act_persistent_zoom.setToolTip("Mantém o nível de zoom ao trocar de alias")
+        self.act_persistent_zoom.triggered.connect(self._toggle_persistent_zoom)
+
+    def _create_menus(self):
+        m_file = self.menuBar().addMenu("Arquivo")
+        m_file.addAction(self.act_open_voicebank)
+        m_file.addAction(self.act_open_oto)
+        m_file.addSeparator()
+        m_file.addAction(self.act_open_project)
+        m_file.addAction(self.act_save_project)
+        m_file.addSeparator()
+        m_file.addAction(self.act_save)
+        m_file.addAction(self.act_save_as)
+        m_file.addSeparator()
+        m_file.addAction(self.act_reveal_voicebank)
+        m_file.addAction(self.act_reload)
+        m_file.addSeparator()
+        m_file.addAction(self.act_quit)
+
+        m_edit = self.menuBar().addMenu("Editar")
+        m_edit.addAction(self.act_undo)
+        m_edit.addAction(self.act_redo)
+        m_edit.addSeparator()
+        m_presets = m_edit.addMenu("Aplicar Preset")
+        m_presets.addAction(self.act_preset_cv)
+        m_presets.addAction(self.act_preset_vcv)
+        m_presets.addAction(self.act_preset_vv)
+        m_presets.addAction(self.act_preset_vc)
+        m_presets.addAction(self.act_preset_minus_v)
+        m_edit.addSeparator()
+        m_edit.addAction(self.act_snap)
+        m_snap_mode = m_edit.addMenu("Modo de snap")
+        m_snap_mode.addAction(self.act_snap_peaks)
+        m_snap_mode.addAction(self.act_snap_zero_crossing)
+        m_snap_mode.addAction(self.act_snap_none)
+        m_edit.addAction(self.act_toggle_srp)
+        m_edit.addSeparator()
+        m_edit.addAction(self.act_rename_alias)
+        m_edit.addAction(self.act_duplicate_alias)
+        m_edit.addAction(self.act_delete_alias)
+        m_edit.addAction(self.act_mark_complete)
+        m_edit.addSeparator()
+        m_edit.addAction(self.act_batch_edit)
+
+        m_view = self.menuBar().addMenu("Visualizar")
+        m_view.addAction(self.act_zoom_in)
+        m_view.addAction(self.act_zoom_out)
+        m_view.addAction(self.act_zoom_reset)
+        m_view.addSeparator()
+        m_view.addAction(self.act_show_minimap)
+        m_view.addAction(self.act_show_spectrogram)
+        m_view.addAction(self.act_spectrogram_config)
+        m_view.addAction(self.act_persistent_zoom)
+        m_view.addSeparator()
+        m_view.addAction(self.act_show_preset_config)
+        m_view.addSeparator()
+        m_view.addAction(self.act_reset_layout)
+
+        m_playback = self.menuBar().addMenu("Reprodução")
+        m_playback.addAction(self.act_play_segment)
+        m_playback.addAction(self.act_play_full)
+
+        m_settings = self.menuBar().addMenu("Configurações")
+        m_settings.addAction(self.act_toggle_auto_save)
+        m_settings.addSeparator()
+        m_gpu = m_settings.addMenu("Aceleração de GPU (>Canário)")
+        m_gpu.addAction(self.act_toggle_gpu)
+        m_gpu.addAction(self.act_gpu_info)
+
+        m_encoding = self.menuBar().addMenu("Encoding")
+        m_encoding.addAction(self.act_encoding_auto)
+        m_encoding.addAction(self.act_encoding_utf8)
+        m_encoding.addAction(self.act_encoding_cp932)
+        m_encoding.addAction(self.act_encoding_ansi)
+
+        m_render = self.menuBar().addMenu("Renderização do sinal")
+        m_render.addAction(self.act_wave_blue)
+        m_render.addAction(self.act_wave_green)
+        m_render.addAction(self.act_wave_mono)
+
+        m_plugins = self.menuBar().addMenu("Plugins")
+        m_plugins.addAction(self.act_manage_plugins)
+
+    def _create_toolbar(self):
+        tb = QToolBar("Ferramentas", self)
+        tb.setMovable(True)
+        tb.addAction(self.act_open_voicebank)
+        tb.addAction(self.act_open_oto)
+        tb.addAction(self.act_reveal_voicebank)
+        tb.addAction(self.act_reload)
+        tb.addSeparator()
+        tb.addAction(self.act_save)
+        tb.addAction(self.act_save_as)
+        tb.addSeparator()
+        tb.addAction(self.act_play_segment)
+        tb.addAction(self.act_play_full)
+        tb.addSeparator()
+        tb.addAction(self.act_zoom_in)
+        tb.addAction(self.act_zoom_out)
+        tb.addSeparator()
+        tb.addWidget(QLabel(" Presets: "))
+        tb.addAction(self.act_preset_cv)
+        tb.addAction(self.act_preset_vcv)
+        tb.addAction(self.act_preset_vv)
+        tb.addAction(self.act_preset_vc)
+        tb.addAction(self.act_preset_minus_v)
+        tb.addSeparator()
+        tb.addAction(self.act_undo)
+        tb.addAction(self.act_redo)
+        self.addToolBar(tb)
+
+    # =========================================================================
+    # Funções de arquivo e projeto
+    # =========================================================================
+
+    def open_voicebank_folder(self):
+        folder = QFileDialog.getExistingDirectory(self, "Selecionar pasta do voicebank")
+        if not folder:
+            return
+        folder_path = Path(folder)
+        oto_path = folder_path / "oto.ini"
+        if oto_path.exists():
+            self._voicebank_dir = folder_path
+            self._load_oto(oto_path)
+        else:
+            QMessageBox.warning(self, "Erro", "Nenhum oto.ini encontrado nesta pasta.")
+
+    def open_oto(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Abrir oto.ini", "", "OTO Files (oto.ini);;All Files (*)"
+        )
+        if path:
+            self._load_oto(Path(path))
+
+    def _load_oto(self, path: Path):
+        try:
+            self._oto.load(str(path), encoding=self._encoding)
+            self._current_path = path
+            self._voicebank_dir = path.parent
+            self._dirty = False
+            self._undo_stack.clear()
+            self._redo_stack.clear()
+            self._load_oto_to_table()
+            self._update_title()
+            self._update_progress()
+            self.statusBar().showMessage(f"Carregado: {path.name}", 3000)
+        except Exception as e:
+            QMessageBox.critical(self, "Erro ao carregar", str(e))
+
+    def _load_oto_to_table(self):
+        self._updating_from_code = True
+        self.table.setRowCount(0)
+        self.table.setRowCount(len(self._oto.entries))
+
+        for row, entry in enumerate(self._oto.entries):
+            # Coluna de marcação
+            fav_item = QTableWidgetItem()
+            fav_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled | Qt.ItemIsUserCheckable)
+            key = f"{entry.filename}|{entry.alias}"
+            if key in self._completed_aliases:
+                fav_item.setCheckState(Qt.Checked)
+            else:
+                fav_item.setCheckState(Qt.Unchecked)
+            self.table.setItem(row, self.COL_FAV, fav_item)
+
+            # Filename
+            fn_item = QTableWidgetItem(entry.filename)
+            fn_item.setFlags(Qt.ItemIsSelectable | Qt.ItemIsEnabled)
+            self.table.setItem(row, self.COL_FILENAME, fn_item)
+
+            # Alias
+            alias_item = QTableWidgetItem(entry.alias)
+            self.table.setItem(row, self.COL_ALIAS, alias_item)
+
+            # Valores numéricos
+            self.table.setItem(row, self.COL_OFFSET, QTableWidgetItem(str(entry.offset)))
+            self.table.setItem(row, self.COL_OVERLAP, QTableWidgetItem(str(entry.overlap)))
+            self.table.setItem(row, self.COL_PREUTTER, QTableWidgetItem(str(entry.preutter)))
+            self.table.setItem(row, self.COL_CONSONANT, QTableWidgetItem(str(entry.consonant)))
+            self.table.setItem(row, self.COL_CUTOFF, QTableWidgetItem(str(entry.cutoff)))
+
+        self._updating_from_code = False
+        self._update_undo_redo_actions()
+
+    def save_oto(self):
+        if self._current_path is None:
+            self.save_oto_as()
+            return
+        try:
+            self._sync_table_to_oto()
+            self._oto.save(str(self._current_path), encoding=self._encoding)
+            self._dirty = False
+            self._last_saved_time = datetime.now()
+            self._update_title()
+            self.statusBar().showMessage("Salvo com sucesso!", 3000)
+        except Exception as e:
+            QMessageBox.critical(self, "Erro ao salvar", str(e))
+
+    def save_oto_as(self):
+        path, _ = QFileDialog.getSaveFileName(
+            self, "Salvar oto.ini como", "", "OTO Files (*.ini);;All Files (*)"
+        )
+        if path:
+            self._current_path = Path(path)
+            self.save_oto()
+
+    def _sync_table_to_oto(self):
+        """Sincroniza os dados da tabela para o objeto OtoFile"""
+        self._oto.entries.clear()
+        for row in range(self.table.rowCount()):
+            filename = self.table.item(row, self.COL_FILENAME).text()
+            alias = self.table.item(row, self.COL_ALIAS).text()
+            offset = int(self.table.item(row, self.COL_OFFSET).text() or "0")
+            overlap = int(self.table.item(row, self.COL_OVERLAP).text() or "0")
+            preutter = int(self.table.item(row, self.COL_PREUTTER).text() or "0")
+            consonant = int(self.table.item(row, self.COL_CONSONANT).text() or "0")
+            cutoff = int(self.table.item(row, self.COL_CUTOFF).text() or "0")
+
+            entry = OtoEntry(
+                filename=filename,
+                alias=alias,
+                offset=offset,
+                consonant=consonant,
+                cutoff=cutoff,
+                preutter=preutter,
+                overlap=overlap,
+            )
+            self._oto.entries.append(entry)
+
+    def reload_oto(self):
+        if self._current_path and self._current_path.exists():
+            if self._dirty:
+                reply = QMessageBox.question(
+                    self, "Recarregar",
+                    "Existem alterações não salvas. Deseja recarregar mesmo assim?",
+                    QMessageBox.Yes | QMessageBox.No
+                )
+                if reply != QMessageBox.Yes:
+                    return
+            self._load_oto(self._current_path)
+
+    def reveal_voicebank(self):
+        if self._voicebank_dir and self._voicebank_dir.exists():
+            import subprocess
+            import platform
+            if platform.system() == "Windows":
+                subprocess.run(["explorer", str(self._voicebank_dir)])
+            elif platform.system() == "Darwin":
+                subprocess.run(["open", str(self._voicebank_dir)])
+            else:
+                subprocess.run(["xdg-open", str(self._voicebank_dir)])
+
+    def open_project(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self, "Abrir projeto", "", "Copaiba Project (*.copaiba);;All Files (*)"
+        )
+        if not path:
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            project = ProjectData(**data)
+            oto_path = Path(project.oto_path)
+            if oto_path.exists():
+                self._load_oto(oto_path)
+                self._voicebank_dir = Path(project.voicebank_path)
+                self._completed_aliases = set(project.completed_aliases)
+                self.preset_config.set_all_presets(project.custom_presets)
+                self._project_file = Path(path)
+                self._load_oto_to_table()
+                self._update_progress()
+                self.statusBar().showMessage(f"Projeto carregado: {path}", 3000)
+            else:
+                QMessageBox.warning(self, "Erro", f"O arquivo oto.ini não foi encontrado:\n{oto_path}")
+        except Exception as e:
+            QMessageBox.critical(self, "Erro ao carregar projeto", str(e))
+
+    def save_project(self):
+        if self._current_path is None:
+            QMessageBox.warning(self, "Erro", "Nenhum oto.ini carregado.")
+            return
+
+        if self._project_file is None:
+            path, _ = QFileDialog.getSaveFileName(
+                self, "Salvar projeto", "", "Copaiba Project (*.copaiba)"
+            )
+            if not path:
+                return
+            self._project_file = Path(path)
+
+        try:
+            project = ProjectData(
+                voicebank_path=str(self._voicebank_dir or ""),
+                oto_path=str(self._current_path),
+                completed_aliases=list(self._completed_aliases),
+                custom_presets=self.preset_config.get_all_presets(),
+            )
+            with open(self._project_file, "w", encoding="utf-8") as f:
+                json.dump(asdict(project), f, indent=2, ensure_ascii=False)
+            self.statusBar().showMessage(f"Projeto salvo: {self._project_file.name}", 3000)
+        except Exception as e:
+            QMessageBox.critical(self, "Erro ao salvar projeto", str(e))
+
+    # =========================================================================
+    # Funções de edição da tabela
+    # =========================================================================
+
+    def _on_item_changed(self, item: QTableWidgetItem):
+        if self._updating_from_code or self._in_undo_redo:
+            return
+
+        row, col = item.row(), item.column()
+
+        # Tratamento especial para checkbox de conclusão
+        if col == self.COL_FAV:
+            self._on_complete_toggled(row, item.checkState() == Qt.Checked)
+            return
+
+        old_val = item.data(Qt.ItemDataRole.UserRole)
+        new_val = item.text()
+
+        if old_val is None:
+            old_val = ""
+
+        if old_val != new_val:
+            # Validação para colunas numéricas
+            if col in [self.COL_OFFSET, self.COL_OVERLAP, self.COL_PREUTTER, self.COL_CONSONANT, self.COL_CUTOFF]:
+                try:
+                    int(new_val)
+                except ValueError:
+                    self._updating_from_code = True
+                    item.setText(str(old_val))
+                    self._updating_from_code = False
+                    return
+
+            edit = CellEdit(row, col, str(old_val), new_val)
+            self._push_undo([edit])
+            item.setData(Qt.ItemDataRole.UserRole, new_val)
+            self._dirty = True
+            self._update_title()
+            self._load_waveform_for_current_row()
+
+    def _on_complete_toggled(self, row: int, completed: bool):
+        if row >= len(self._oto.entries):
+            return
+        entry = self._oto.entries[row]
+        key = f"{entry.filename}|{entry.alias}"
+        if completed:
+            self._completed_aliases.add(key)
+        else:
+            self._completed_aliases.discard(key)
+        self._update_progress()
+
+    def _on_selection_changed(self):
+        self._load_waveform_for_current_row()
+
+    def _on_current_cell_changed(self, current_row, current_col, previous_row, previous_col):
+        if current_row != previous_row and current_row >= 0:
+            self._load_waveform_for_current_row()
+        self._update_line_indicator()
+
+    def _load_waveform_for_current_row(self):
+        row = self.table.currentRow()
+        if row < 0 or row >= len(self._oto.entries):
+            self.waveform.clear()
+            return
+
+        entry = self._oto.entries[row]
+
+        # Atualiza entry com valores da tabela
+        entry = OtoEntry(
+            filename=self.table.item(row, self.COL_FILENAME).text(),
+            alias=self.table.item(row, self.COL_ALIAS).text(),
+            offset=int(self.table.item(row, self.COL_OFFSET).text() or "0"),
+            consonant=int(self.table.item(row, self.COL_CONSONANT).text() or "0"),
+            cutoff=int(self.table.item(row, self.COL_CUTOFF).text() or "0"),
+            preutter=int(self.table.item(row, self.COL_PREUTTER).text() or "0"),
+            overlap=int(self.table.item(row, self.COL_OVERLAP).text() or "0"),
+        )
+
+        if self._voicebank_dir:
+            wav_path = self._voicebank_dir / entry.filename
+            if wav_path.exists():
+                reset_zoom = not self._keep_zoom_on_alias_change
+                self.waveform.show_waveform(wav_path, entry, row, reset_zoom=reset_zoom)
+            else:
+                self.waveform.clear()
+                self.statusBar().showMessage(f"Arquivo não encontrado: {entry.filename}", 3000)
+
+    def _entry_edited_from_waveform(self, row: int, entry: OtoEntry):
+        """Callback quando os marcadores são editados no waveform"""
+        if row < 0 or row >= self.table.rowCount():
+            return
+
+        edits = []
+        self._updating_from_code = True
+        try:
+            col_map = {
+                self.COL_OFFSET: str(int(entry.offset)),
+                self.COL_OVERLAP: str(int(entry.overlap)),
+                self.COL_PREUTTER: str(int(entry.preutter)),
+                self.COL_CONSONANT: str(int(entry.consonant)),
+                self.COL_CUTOFF: str(int(entry.cutoff)),
+            }
+
+            for col, new_val in col_map.items():
+                item = self.table.item(row, col)
+                if item:
+                    old_val = item.text()
+                    if old_val != new_val:
+                        edits.append(CellEdit(row, col, old_val, new_val))
+                        item.setText(new_val)
+                        item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+        finally:
+            self._updating_from_code = False
+
+        if edits:
+            self._push_undo(edits)
+            self._dirty = True
+            self._update_title()
+
+    def apply_preset(self, preset_key: str):
+        """Aplica preset aos aliases selecionados"""
+        if not self.preset_config.is_active():
+            self.statusBar().showMessage("Presets estão desativados nas configurações", 2000)
+            return
+
+        selected_rows = sorted(set(item.row() for item in self.table.selectedItems()))
+        if not selected_rows:
+            self.statusBar().showMessage("Nenhum alias selecionado", 2000)
+            return
+
+        preset = self.preset_config.get_preset(preset_key)
+
+        edits = []
+        self._updating_from_code = True
+        try:
+            for row in selected_rows:
+                # Overlap
+                item = self.table.item(row, self.COL_OVERLAP)
+                if item:
+                    old_val = item.text()
+                    new_val = str(preset.overlap)
+                    if old_val != new_val:
+                        edits.append(CellEdit(row, self.COL_OVERLAP, old_val, new_val))
+                        item.setText(new_val)
+                        item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                # Preutter
+                item = self.table.item(row, self.COL_PREUTTER)
+                if item:
+                    old_val = item.text()
+                    new_val = str(preset.preutter)
+                    if old_val != new_val:
+                        edits.append(CellEdit(row, self.COL_PREUTTER, old_val, new_val))
+                        item.setText(new_val)
+                        item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                # Consonant
+                item = self.table.item(row, self.COL_CONSONANT)
+                if item:
+                    old_val = item.text()
+                    new_val = str(preset.consonant)
+                    if old_val != new_val:
+                        edits.append(CellEdit(row, self.COL_CONSONANT, old_val, new_val))
+                        item.setText(new_val)
+                        item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                # Cutoff
+                item = self.table.item(row, self.COL_CUTOFF)
+                if item:
+                    old_val = item.text()
+                    new_val = str(preset.cutoff)
+                    if old_val != new_val:
+                        edits.append(CellEdit(row, self.COL_CUTOFF, old_val, new_val))
+                        item.setText(new_val)
+                        item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+        finally:
+            self._updating_from_code = False
+
+        if edits:
+            self._push_undo(edits)
+            self._dirty = True
+            self._update_title()
+            self._load_waveform_for_current_row()
+            self.statusBar().showMessage(f"Preset {preset_key.upper()} aplicado a {len(selected_rows)} alias(es)", 2000)
+
+    # =========================================================================
+    # Undo/Redo
+    # =========================================================================
+
+    def _push_undo(self, edit: Union[list[CellEdit], RowEdit]):
+        """Adiciona edição ao stack de undo"""
+        self._undo_stack.append(edit)
+        self._redo_stack.clear()
+        self._update_undo_redo_actions()
+
+    def undo(self):
+        """Desfaz última edição"""
+        if not self._undo_stack:
+            return
+
+        edit = self._undo_stack.pop()
+        self._in_undo_redo = True
+        self._updating_from_code = True
+
+        try:
+            if isinstance(edit, list):
+                for cell_edit in reversed(edit):
+                    item = self.table.item(cell_edit.row, cell_edit.col)
+                    if item:
+                        item.setText(cell_edit.old)
+                        item.setData(Qt.ItemDataRole.UserRole, cell_edit.old)
+                self._redo_stack.append(edit)
+
+            elif isinstance(edit, RowEdit):
+                if edit.is_insert:
+                    self.table.removeRow(edit.row)
+                else:
+                    self.table.insertRow(edit.row)
+                    for col, value in enumerate(edit.data):
+                        self.table.setItem(edit.row, col, QTableWidgetItem(value))
+                self._redo_stack.append(edit)
+
+        finally:
+            self._in_undo_redo = False
+            self._updating_from_code = False
+
+        self._dirty = True
+        self._update_title()
+        self._update_undo_redo_actions()
+        self._load_waveform_for_current_row()
+
+    def redo(self):
+        """Refaz última edição desfeita"""
+        if not self._redo_stack:
+            return
+
+        edit = self._redo_stack.pop()
+        self._in_undo_redo = True
+        self._updating_from_code = True
+
+        try:
+            if isinstance(edit, list):
+                for cell_edit in edit:
+                    item = self.table.item(cell_edit.row, cell_edit.col)
+                    if item:
+                        item.setText(cell_edit.new)
+                        item.setData(Qt.ItemDataRole.UserRole, cell_edit.new)
+                self._undo_stack.append(edit)
+
+            elif isinstance(edit, RowEdit):
+                if edit.is_insert:
+                    self.table.insertRow(edit.row)
+                    for col, value in enumerate(edit.data):
+                        self.table.setItem(edit.row, col, QTableWidgetItem(value))
+                else:
+                    self.table.removeRow(edit.row)
+                self._undo_stack.append(edit)
+
+        finally:
+            self._in_undo_redo = False
+            self._updating_from_code = False
+
+        self._dirty = True
+        self._update_title()
+        self._update_undo_redo_actions()
+        self._load_waveform_for_current_row()
+
+    def _update_undo_redo_actions(self):
+        """Atualiza estado dos botões de undo/redo"""
+        self.act_undo.setEnabled(len(self._undo_stack) > 0)
+        self.act_redo.setEnabled(len(self._redo_stack) > 0)
+
+    # =========================================================================
+    # Operações de alias
+    # =========================================================================
+
+    def rename_alias(self):
+        """Renomeia o alias atual"""
+        row = self.table.currentRow()
+        if row < 0:
+            return
+
+        alias_item = self.table.item(row, self.COL_ALIAS)
+        if not alias_item:
+            return
+
+        old_alias = alias_item.text()
+        new_alias, ok = QInputDialog.getText(
+            self, "Renomear Alias", "Novo nome:", text=old_alias
+        )
+
+        if ok and new_alias and new_alias != old_alias:
+            self._updating_from_code = True
+            alias_item.setText(new_alias)
+            alias_item.setData(Qt.ItemDataRole.UserRole, new_alias)
+            self._updating_from_code = False
+
+            edit = CellEdit(row, self.COL_ALIAS, old_alias, new_alias)
+            self._push_undo([edit])
+            self._dirty = True
+            self._update_title()
+            self._load_waveform_for_current_row()
+
+    def delete_alias(self):
+        """Deleta o alias atual"""
+        row = self.table.currentRow()
+        if row < 0:
+            return
+
+        reply = QMessageBox.question(
+            self, "Confirmar Exclusão",
+            f"Deseja realmente excluir o alias da linha {row + 1}?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+
+        if reply == QMessageBox.StandardButton.Yes:
+            row_data = []
+            for col in range(self.table.columnCount()):
+                item = self.table.item(row, col)
+                row_data.append(item.text() if item else "")
+
+            self.table.removeRow(row)
+
+            edit = RowEdit(row, row_data, is_insert=False)
+            self._push_undo(edit)
+            self._dirty = True
+            self._update_title()
+            self._load_waveform_for_current_row()
+
+    def duplicate_alias(self):
+        """Duplica o alias atual"""
+        row = self.table.currentRow()
+        if row < 0:
+            return
+
+        row_data = []
+        for col in range(self.table.columnCount()):
+            item = self.table.item(row, col)
+            row_data.append(item.text() if item else "")
+
+        new_row = row + 1
+        self.table.insertRow(new_row)
+
+        self._updating_from_code = True
+        for col, value in enumerate(row_data):
+            if col == self.COL_FAV:
+                fav_item = QTableWidgetItem()
+                fav_item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled | Qt.ItemFlag.ItemIsUserCheckable)
+                fav_item.setCheckState(Qt.CheckState.Unchecked)
+                self.table.setItem(new_row, col, fav_item)
+            elif col == self.COL_FILENAME:
+                fn_item = QTableWidgetItem(value)
+                fn_item.setFlags(Qt.ItemFlag.ItemIsSelectable | Qt.ItemFlag.ItemIsEnabled)
+                self.table.setItem(new_row, col, fn_item)
+            else:
+                item = QTableWidgetItem(value)
+                item.setData(Qt.ItemDataRole.UserRole, value)
+                self.table.setItem(new_row, col, item)
+        self._updating_from_code = False
+
+        alias_item = self.table.item(new_row, self.COL_ALIAS)
+        if alias_item:
+            old_alias = alias_item.text()
+            alias_item.setText(f"{old_alias} (cópia)")
+
+        edit = RowEdit(new_row, row_data, is_insert=True)
+        self._push_undo(edit)
+        self._dirty = True
+        self._update_title()
+        self.table.setCurrentCell(new_row, self.COL_ALIAS)
+
+    def _toggle_complete_current(self):
+        """Marca/desmarca o alias atual como concluído"""
+        row = self.table.currentRow()
+        if row < 0:
+            return
+
+        fav_item = self.table.item(row, self.COL_FAV)
+        if fav_item:
+            if fav_item.checkState() == Qt.CheckState.Checked:
+                fav_item.setCheckState(Qt.CheckState.Unchecked)
+            else:
+                fav_item.setCheckState(Qt.CheckState.Checked)
+
+    # =========================================================================
+    # Reprodução de áudio
+    # =========================================================================
+
+    def _play_segment(self):
+        """Reproduz o segmento atual"""
+        if not SOUNDDEVICE_AVAILABLE or self._audio_player is None:
+            self.statusBar().showMessage("sounddevice não disponível", 2000)
+            return
+
+        wav_path = self.waveform.get_current_wav_path()
+        if wav_path is None or not wav_path.exists():
+            return
+
+        start_ms, end_ms = self.waveform.get_segment_times_ms()
+        self._audio_player.play_segment(wav_path, float(start_ms), float(end_ms))
+
+    def _play_full_audio(self):
+        """Reproduz o áudio completo"""
+        if not SOUNDDEVICE_AVAILABLE or self._audio_player is None:
+            self.statusBar().showMessage("sounddevice não disponível", 2000)
+            return
+
+        wav_path = self.waveform.get_current_wav_path()
+        if wav_path is None or not wav_path.exists():
+            return
+
+        self._audio_player.play_full(wav_path)
+
+    # =========================================================================
+    # Navegação e interface
+    # =========================================================================
+
+    def _step_alias(self, direction: int):
+        """Navega entre aliases (+1 = próximo, -1 = anterior)"""
+        current_row = self.table.currentRow()
+        if current_row < 0:
+            return
+
+        new_row = current_row + direction
+        if 0 <= new_row < self.table.rowCount():
+            self.table.setCurrentCell(new_row, self.table.currentColumn())
+
+    def _handle_waveform_key(self, event) -> bool:
+        """Manipula eventos de teclado no waveform"""
+        return False
+
+    def _filter_table(self, text: str):
+        """Filtra a tabela por texto"""
+        for row in range(self.table.rowCount()):
+            should_show = True
+            if text.strip():
+                alias_item = self.table.item(row, self.COL_ALIAS)
+                filename_item = self.table.item(row, self.COL_FILENAME)
+
+                alias_text = alias_item.text() if alias_item else ""
+                filename_text = filename_item.text() if filename_item else ""
+
+                should_show = (text.lower() in alias_text.lower() or
+                               text.lower() in filename_text.lower())
+
+            self.table.setRowHidden(row, not should_show)
+
+    def toggle_minimap(self, checked: bool):
+        """Mostra/oculta o minimapa"""
+        self.waveform.set_show_minimap(checked)
+
+    def _toggle_spectrogram(self, checked: bool):
+        """Mostra/oculta o espectrograma"""
+        self.waveform.set_show_spectrogram(checked)
+
+    def _toggle_spectrogram_config_dock(self):
+        """Mostra/oculta dock de configuração do espectrograma"""
+        if self._dock_spectrogram_config.isVisible():
+            self._dock_spectrogram_config.hide()
+        else:
+            self._dock_spectrogram_config.show()
+
+    def _toggle_preset_dock(self):
+        """Mostra/oculta dock de configuração de presets"""
+        if self._dock_presets.isVisible():
+            self._dock_presets.hide()
+        else:
+            self._dock_presets.show()
+
+    def _toggle_gpu_acceleration(self, checked: bool):
+        """Ativa/desativa aceleração GPU"""
+        if not GPU_BACKEND_AVAILABLE:
+            self.statusBar().showMessage("Backend GPU não disponível", 2000)
+            self.act_toggle_gpu.setChecked(False)
+            return
+
+        if checked:
+            if enable_gpu():
+                self.statusBar().showMessage("GPU ativada com sucesso", 2000)
+            else:
+                self.statusBar().showMessage("Falha ao ativar GPU", 2000)
+                self.act_toggle_gpu.setChecked(False)
+        else:
+            disable_gpu()
+            self.statusBar().showMessage("GPU desativada", 2000)
+
+        self._update_gpu_status_label()
+
+    def _show_gpu_info(self):
+        """Mostra informações sobre a GPU"""
+        if not GPU_BACKEND_AVAILABLE:
+            QMessageBox.information(
+                self, "GPU Info",
+                "Backend GPU não disponível.\n\nInstale CuPy (NVIDIA) ou PyOpenCL (AMD/Intel) para aceleração GPU."
+            )
+            return
+
+        info = get_gpu_info()
+        status = "✅ Ativada" if gpu_enabled() else "⚠️ Disponível (desativada)"
+
+        msg = f"""
+<b>Informações da GPU</b><br><br>
+<b>Dispositivo:</b> {info}<br>
+<b>Status:</b> {status}<br>
+<b>Vendor:</b> {info.vendor.value.upper()}<br>
+<b>Backend:</b> {info.backend}<br>
+"""
+
+        if info.vendor.value != "cpu":
+            msg += f"<b>Memória:</b> {info.memory_gb:.1f} GB<br>"
+            msg += f"<b>Compute:</b> {info.compute_capability}<br>"
+
+        QMessageBox.information(self, "GPU Info", msg)
+
+    def _toggle_auto_save(self, checked: bool):
+        """Ativa/desativa salvamento automático"""
+        if checked:
+            if self._auto_save_timer is None:
+                self._auto_save_timer = QTimer(self)
+                self._auto_save_timer.timeout.connect(self._auto_save)
+            self._auto_save_timer.start(self._auto_save_interval * 1000)
+            self.statusBar().showMessage(f"Auto-save ativado ({self._auto_save_interval}s)", 2000)
+        else:
+            if self._auto_save_timer:
+                self._auto_save_timer.stop()
+            self.statusBar().showMessage("Auto-save desativado", 2000)
+
+    def _auto_save(self):
+        """Salva automaticamente se houver mudanças"""
+        if self._dirty and self._current_path:
+            self.save_oto()
+
+    def _open_batch_edit_dialog(self):
+        """Abre diálogo de edição em lote"""
+        selected_rows = sorted(set(item.row() for item in self.table.selectedItems()))
+        if not selected_rows:
+            QMessageBox.information(self, "Edição em Lote", "Selecione pelo menos um alias.")
+            return
+
+        dialog = BatchEditDialog(self, len(selected_rows))
+        if dialog.exec() == QDialog.DialogCode.Accepted:
+            values = dialog.get_values()
+            if not values:
+                return
+
+            edits = []
+            self._updating_from_code = True
+            try:
+                for row in selected_rows:
+                    if "offset" in values:
+                        item = self.table.item(row, self.COL_OFFSET)
+                        if item:
+                            old_val = item.text()
+                            new_val = str(values["offset"])
+                            if old_val != new_val:
+                                edits.append(CellEdit(row, self.COL_OFFSET, old_val, new_val))
+                                item.setText(new_val)
+                                item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                    if "overlap" in values:
+                        item = self.table.item(row, self.COL_OVERLAP)
+                        if item:
+                            old_val = item.text()
+                            new_val = str(values["overlap"])
+                            if old_val != new_val:
+                                edits.append(CellEdit(row, self.COL_OVERLAP, old_val, new_val))
+                                item.setText(new_val)
+                                item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                    if "preutter" in values:
+                        item = self.table.item(row, self.COL_PREUTTER)
+                        if item:
+                            old_val = item.text()
+                            new_val = str(values["preutter"])
+                            if old_val != new_val:
+                                edits.append(CellEdit(row, self.COL_PREUTTER, old_val, new_val))
+                                item.setText(new_val)
+                                item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                    if "consonant" in values:
+                        item = self.table.item(row, self.COL_CONSONANT)
+                        if item:
+                            old_val = item.text()
+                            new_val = str(values["consonant"])
+                            if old_val != new_val:
+                                edits.append(CellEdit(row, self.COL_CONSONANT, old_val, new_val))
+                                item.setText(new_val)
+                                item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+                    if "cutoff" in values:
+                        item = self.table.item(row, self.COL_CUTOFF)
+                        if item:
+                            old_val = item.text()
+                            new_val = str(values["cutoff"])
+                            if old_val != new_val:
+                                edits.append(CellEdit(row, self.COL_CUTOFF, old_val, new_val))
+                                item.setText(new_val)
+                                item.setData(Qt.ItemDataRole.UserRole, new_val)
+
+            finally:
+                self._updating_from_code = False
+
+            if edits:
+                self._push_undo(edits)
+                self._dirty = True
+                self._update_title()
+                self._load_waveform_for_current_row()
+                self.statusBar().showMessage(f"Edição em lote aplicada a {len(selected_rows)} alias(es)", 2000)
+
+    def _set_encoding(self, encoding: str):
+        """Define o encoding para salvar/carregar arquivos"""
+        self._encoding = encoding
+        if encoding == "auto":
+            self.act_encoding_auto.setChecked(True)
+        elif encoding == "utf-8":
+            self.act_encoding_utf8.setChecked(True)
+        elif encoding == "cp932":
+            self.act_encoding_cp932.setChecked(True)
+        elif encoding == "mbcs":
+            self.act_encoding_ansi.setChecked(True)
+
+    def _reset_layout(self):
+        """Reseta o layout dos painéis para o padrão"""
+        reply = QMessageBox.question(
+            self, "Resetar Layout",
+            "Deseja resetar o layout dos painéis para o padrão?",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            self.settings.clear()
+            QMessageBox.information(
+                self, "Layout Resetado",
+                "O layout foi resetado. Reinicie o programa para aplicar as mudanças."
+            )
+
+    def _toggle_srp(self, checked: bool):
+        """Ativa/desativa SRP (Snap Relativo de Preutterance)"""
+        self._srp_enabled = checked
+        self.waveform.set_srp_enabled(checked)
+        if checked:
+            self.statusBar().showMessage("SRP ativado - mover preutterance move offset/cutoff", 2000)
+        else:
+            self.statusBar().showMessage("SRP desativado", 2000)
+
+    def _toggle_persistent_zoom(self, checked: bool):
+        """Ativa/desativa zoom persistente"""
+        self._keep_zoom_on_alias_change = checked
+        self.waveform.set_persistent_zoom(checked)
+        if checked:
+            self.statusBar().showMessage("Zoom persistente ativado", 2000)
+        else:
+            self.statusBar().showMessage("Zoom persistente desativado", 2000)
+
+    # =========================================================================
+    # Utilitários
+    # =========================================================================
+
+    def _update_title(self):
+        """Atualiza título da janela"""
+        title = "Copaiba Lexikon | e-LTS v4.4.0se"
+        if self._current_path:
+            title += f" - {self._current_path.name}"
+            if self._dirty:
+                title += " *"
+        self.setWindowTitle(title)
+
+    def _update_progress(self):
+        """Atualiza indicador de progresso"""
+        total = self.table.rowCount()
+        completed = len(self._completed_aliases)
+        self._progress_label.setText(f"{completed}/{total} concluídos")
+
+    def _load_settings(self):
+        """Carrega configurações salvas"""
+        geometry = self.settings.value("geometry")
+        if geometry:
+            self.restoreGeometry(geometry)
+
+        state = self.settings.value("windowState")
+        if state:
+            self.restoreState(state)
+
+        encoding = self.settings.value("encoding", "auto")
+        self._set_encoding(encoding)
+
+        snap_enabled = self.settings.value("snap_enabled", False, type=bool)
+        self.act_snap.setChecked(snap_enabled)
+        self.waveform.set_snap_enabled(snap_enabled)
+
+        snap_mode = self.settings.value("snap_mode", "peaks")
+        if snap_mode == "peaks":
+            self.act_snap_peaks.setChecked(True)
+        elif snap_mode == "zero_crossing":
+            self.act_snap_zero_crossing.setChecked(True)
+        else:
+            self.act_snap_none.setChecked(True)
+        self.waveform.set_snap_mode(snap_mode)
+
+        wave_color_scheme = self.settings.value("wave_color", "blue")
+        if wave_color_scheme == "green":
+            self.act_wave_green.setChecked(True)
+            self.waveform.set_wave_colors("#2dff88", "#c9ffe0")
+        elif wave_color_scheme == "mono":
+            self.act_wave_mono.setChecked(True)
+            self.waveform.set_wave_colors("#ffffff", "#000000")
+        else:
+            self.act_wave_blue.setChecked(True)
+
+        show_minimap = self.settings.value("show_minimap", True, type=bool)
+        self.act_show_minimap.setChecked(show_minimap)
+        self.waveform.set_show_minimap(show_minimap)
+
+        auto_save = self.settings.value("auto_save", False, type=bool)
+        self.act_toggle_auto_save.setChecked(auto_save)
+        if auto_save:
+            self._toggle_auto_save(True)
+
+        srp_enabled = self.settings.value("srp_enabled", False, type=bool)
+        self.act_toggle_srp.setChecked(srp_enabled)
+        self._toggle_srp(srp_enabled)
+
+        persistent_zoom = self.settings.value("persistent_zoom", True, type=bool)
+        self.act_persistent_zoom.setChecked(persistent_zoom)
+        self._toggle_persistent_zoom(persistent_zoom)
+
+        if GPU_BACKEND_AVAILABLE:
+            gpu_enabled_setting = self.settings.value("gpu_enabled", False, type=bool)
+            if gpu_enabled_setting and gpu_available():
+                self.act_toggle_gpu.setChecked(True)
+                self._toggle_gpu_acceleration(True)
+
+    def _save_settings(self):
+        """Salva configurações"""
+        self.settings.setValue("geometry", self.saveGeometry())
+        self.settings.setValue("windowState", self.saveState())
+        self.settings.setValue("encoding", self._encoding)
+        self.settings.setValue("snap_enabled", self.act_snap.isChecked())
+        self.settings.setValue("snap_mode", self.waveform.get_snap_mode())
+
+        if self.act_wave_green.isChecked():
+            self.settings.setValue("wave_color", "green")
+        elif self.act_wave_mono.isChecked():
+            self.settings.setValue("wave_color", "mono")
+        else:
+            self.settings.setValue("wave_color", "blue")
+
+        self.settings.setValue("show_minimap", self.act_show_minimap.isChecked())
+        self.settings.setValue("auto_save", self.act_toggle_auto_save.isChecked())
+        self.settings.setValue("srp_enabled", self.act_toggle_srp.isChecked())
+        self.settings.setValue("persistent_zoom", self.act_persistent_zoom.isChecked())
+
+        if GPU_BACKEND_AVAILABLE:
+            self.settings.setValue("gpu_enabled", self.act_toggle_gpu.isChecked())
+
+    def closeEvent(self, event: QCloseEvent):
+        """Manipula o fechamento da janela"""
+        if self._dirty:
+            completed = len(self._completed_aliases)
+            total = self.table.rowCount()
+            last_saved = self._get_last_saved_string()
+
+            dialog = AdvancedExitDialog(
+                self,
+                self._current_path or Path("sem_arquivo.ini"),
+                self._dirty,
+                completed,
+                total,
+                last_saved
+            )
+            dialog.exec()
+            action = dialog.get_action()
+
+            if action == "cancel":
+                event.ignore()
+                return
+            elif action == "backup":
+                if self._create_backup():
+                    self.save_oto()
+                else:
+                    reply = QMessageBox.question(
+                        self, "Backup Falhou",
+                        "Não foi possível criar backup. Salvar mesmo assim?",
+                        QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+                    )
+                    if reply == QMessageBox.StandardButton.Yes:
+                        self.save_oto()
+                    else:
+                        event.ignore()
+                        return
+            elif action == "save":
+                self.save_oto()
+
+        self._save_settings()
+        event.accept()
+
+
+def main():
+    app = QApplication(sys.argv)
+    app.setApplicationName("Copaiba Lexikon")
+    app.setOrganizationName("MiSC Labs")
+
+    app.setStyle("Fusion")
+    palette = QPalette()
+    palette.setColor(QPalette.ColorRole.Window, QColor(53, 53, 53))
+    palette.setColor(QPalette.ColorRole.WindowText, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.Base, QColor(25, 25, 25))
+    palette.setColor(QPalette.ColorRole.AlternateBase, QColor(53, 53, 53))
+    palette.setColor(QPalette.ColorRole.ToolTipBase, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.ToolTipText, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.Text, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.Button, QColor(53, 53, 53))
+    palette.setColor(QPalette.ColorRole.ButtonText, QColor(255, 255, 255))
+    palette.setColor(QPalette.ColorRole.BrightText, QColor(255, 0, 0))
+    palette.setColor(QPalette.ColorRole.Link, QColor(42, 130, 218))
+    palette.setColor(QPalette.ColorRole.Highlight, QColor(42, 130, 218))
+    palette.setColor(QPalette.ColorRole.HighlightedText, QColor(0, 0, 0))
+    app.setPalette(palette)
+
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec())
+
+
+if __name__ == "__main__":
+    main()
