@@ -357,6 +357,20 @@ class MenuBuilder:
         mw.act_plugin_oto_merger = QAction("Jardineiro - Mesclar oto.ini...", mw)
         mw.act_plugin_oto_merger.setToolTip("Mescla um arquivo oto.ini externo com o projeto atual")
         mw.act_plugin_oto_merger.triggered.connect(lambda: mw._open_plugin("oto_merger"))
+        
+        mw.act_plugin_readme_generator = QAction("Gerador de README...", mw)
+        mw.act_plugin_readme_generator.setToolTip("Gera um arquivo readme.txt padronizado para o Voicebank")
+        mw.act_plugin_readme_generator.triggered.connect(lambda: mw._open_plugin("readme_generator"))
+
+        mw.act_plugin_yaml_generator = QAction("Gerador de Character YAML...", mw)
+        mw.act_plugin_yaml_generator.setToolTip("Gera um arquivo character.yaml para uso no OpenUtau")
+        mw.act_plugin_yaml_generator.triggered.connect(lambda: mw._open_plugin("yaml_generator"))
+
+        # === AJUDA ===
+        mw.act_show_cheatsheet = QAction("Cheatsheet de Atalhos (F1)", mw)
+        mw.act_show_cheatsheet.setShortcut(QKeySequence("F1"))
+        mw.act_show_cheatsheet.setToolTip("Mostra a lista de atalhos e dicas de uso do O Pomar")
+        mw.act_show_cheatsheet.triggered.connect(mw._show_cheatsheet)
 
         # === LAYOUT ===
         mw.act_reset_layout = QAction("Resetar layout dos painéis", mw)
@@ -526,6 +540,8 @@ class MenuBuilder:
         mw.m_plugins_manage.addAction(mw.act_plugin_rename)
         mw.m_plugins_manage.addAction(mw.act_plugin_sort)
         mw.m_plugins_manage.addAction(mw.act_plugin_oto_merger)
+        mw.m_plugins_manage.addAction(mw.act_plugin_readme_generator)
+        mw.m_plugins_manage.addAction(mw.act_plugin_yaml_generator)
         
         mw.m_plugins_convert = mw.m_plugins.addMenu("Conversão")
         mw.m_plugins_convert.addAction(mw.act_plugin_romaji)
@@ -536,6 +552,10 @@ class MenuBuilder:
         
         mw.m_plugins.addSeparator()
         # mw.m_plugins.addAction(mw.act_manage_plugins) removido
+
+        # === AJUDA ===
+        mw.m_help = mw.menuBar().addMenu("Ajuda")
+        mw.m_help.addAction(mw.act_show_cheatsheet)
 
         # === IDIOMA ===
         # Removido (movido para settings)
@@ -588,6 +608,13 @@ class MenuBuilder:
         tb.addSeparator()
         tb.addAction(mw.act_undo)
         tb.addAction(mw.act_redo)
+        tb.addSeparator()
+        
+        # Cria um botão visual para o cheatsheet
+        act_help_btn = tb.addAction(" 💡 Atalhos ")
+        act_help_btn.setToolTip("Abre o painel de atalhos do O Pomar (F1)")
+        act_help_btn.triggered.connect(mw._show_cheatsheet)
+
         mw.addToolBar(tb)
 
     def _populate_language_menu(self) -> None:
