@@ -48,8 +48,8 @@ class ProjectController:
             return
         folder_path = Path(folder)
 
-        # Salva diretório para próxima vez
-        mw.settings.setValue("last_voicebank_dir", str(folder_path.parent))
+        # Salva diretório exato do voicebank para a próxima vez (ao invés do pai)
+        mw.settings.setValue("last_voicebank_dir", str(folder_path))
 
         # Encontra todos os arquivos oto.ini recursivamente
         oto_files = list(folder_path.rglob("oto.ini"))
@@ -235,11 +235,18 @@ class ProjectController:
     def open_project(self) -> None:
         """Abre um projeto .copaiba."""
         mw = self.mw
+        
+        last_dir = mw.settings.value("last_project_dir", "")
+        if not last_dir:
+            last_dir = mw.settings.value("last_voicebank_dir", "")
+            
         path, _ = QFileDialog.getOpenFileName(
-            mw, "Abrir projeto", "", "Copaiba Project (*.copaiba);;All Files (*)"
+            mw, "Abrir projeto", last_dir, "Copaiba Project (*.copaiba);;All Files (*)"
         )
         if not path:
             return
+            
+        mw.settings.setValue("last_project_dir", str(Path(path).parent))
         self._load_project_file(Path(path))
 
     def _load_project_file(self, path: Path) -> None:

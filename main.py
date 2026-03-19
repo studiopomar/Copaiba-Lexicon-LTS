@@ -49,6 +49,7 @@ from controllers.audio_controller import AudioController
 from controllers.table_controller import TableController
 from core.types import CellEdit, RowEdit, ProjectData
 from dialogs.batch_edit_dialog import BatchEditDialog
+from dialogs.cheatsheet_dialog import CheatsheetDialog
 from core.project_session import ProjectSession
 
 # Configura logger inicial
@@ -121,7 +122,7 @@ class MainWindow(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Copaiba Lexikon | 2026.3")
+        self.setWindowTitle("Copaiba Lexikon | 2026.4")
         self.resize(1600, 900)
         
         # Configura ícone da janela
@@ -297,7 +298,9 @@ class MainWindow(QMainWindow):
 
     def _setup_ui(self):
         self.tab_widget = QTabWidget(self)
+        self.tab_widget.setTabPosition(QTabWidget.TabPosition.South)
         self.tab_widget.setTabsClosable(True)
+        self.tab_widget.setMaximumHeight(32)
         self.tab_widget.tabCloseRequested.connect(self._on_tab_close_requested)
         self.tab_widget.currentChanged.connect(self._on_tab_changed)
         
@@ -640,6 +643,18 @@ class MainWindow(QMainWindow):
             return
         super().keyPressEvent(event)
 
+    def eventFilter(self, obj, event):
+        from PySide6.QtCore import QEvent
+        from PySide6.QtWidgets import QTableWidget
+        if isinstance(obj, QTableWidget) and event.type() == QEvent.Type.KeyPress:
+            if event.matches(QKeySequence.StandardKey.Copy):
+                self._copy_selection()
+                return True
+            elif event.matches(QKeySequence.StandardKey.Paste):
+                self._paste_selection()
+                return True
+        return super().eventFilter(obj, event)
+
     def _copy_selection(self):
         """Delega ao TableController."""
         self.table_ctrl.copy_selection()
@@ -966,6 +981,7 @@ class MainWindow(QMainWindow):
             self._dirty = True
             self._update_title()
             self._load_waveform_for_current_row()
+            self._update_row_colors(specific_row=row)
 
     def _on_complete_toggled(self, row: int, completed: bool):
         if row >= len(self._oto.entries):
@@ -976,7 +992,7 @@ class MainWindow(QMainWindow):
             self._completed_aliases.add(key)
         else:
             self._completed_aliases.discard(key)
-        self._update_progress()
+        self._update_progress(specific_row=row)
 
     def _on_selection_changed(self):
         self._load_waveform_for_current_row()
@@ -995,7 +1011,7 @@ class MainWindow(QMainWindow):
                         entry = self._oto.entries[previous_row]
                         key = f"{entry.filename}|{entry.alias}"
                         self._completed_aliases.add(key)
-                        self._update_progress()
+                        self._update_progress(specific_row=previous_row)
 
         self._update_line_indicator()
 
@@ -1109,6 +1125,7 @@ class MainWindow(QMainWindow):
             self._push_undo(edits)
             self._dirty = True
             self._update_title()
+            self._update_row_colors(specific_row=row)
 
     def apply_preset(self, preset_key: str):
         """Delega ao TableController."""
@@ -1352,6 +1369,11 @@ class MainWindow(QMainWindow):
         self.statusBar().showMessage(f"Normalização {status}", 2000)
 
 
+    def _show_cheatsheet(self):
+        """Mostra o diálogo de janela flutuante com o cheatsheet de atalhos."""
+        dialog = CheatsheetDialog(self)
+        dialog.exec()
+
     def _open_batch_edit_dialog(self):
         selected_rows = sorted(set(item.row() for item in self.table.selectedItems()))
         if not selected_rows:
@@ -1546,6 +1568,8 @@ class MainWindow(QMainWindow):
             "consistency": ("plugins", "ConsistencyCheckerPlugin"),
             "oto_merger": ("plugins", "OtoMergerPlugin"),
             "mic_tuner": ("plugins", "MicTunerPlugin"),
+            "readme_generator": ("plugins", "ReadmeGeneratorPlugin"),
+            "yaml_generator": ("plugins", "YamlGeneratorPlugin"),
         }
         
         if plugin_name not in plugin_map:
@@ -1626,59 +1650,58 @@ class MainWindow(QMainWindow):
             palette.setColor(QPalette.ColorRole.HighlightedText, QColor(240, 240, 245))
             palette.setColor(QPalette.ColorRole.PlaceholderText, QColor(120, 120, 125))
             
-            # Stylesheet DAW Dark - funcional, limpo, profissional
+            # Stylesheet DAW Dark - moderno e suave
             dark_stylesheet = """
                 * { 
                     font-family: "Segoe UI", "SF Pro Text", "Roboto", -apple-system, sans-serif;
-                    font-size: 13px;
                 }
                 
                 QWidget { 
-                    background-color: #26262a; 
-                    color: #d2d2d7;
+                    background-color: #1c1c1e; 
+                    color: #ebebf0;
                 }
                 
                 QMainWindow { 
-                    background-color: #1e1e22; 
+                    background-color: #171719; 
                 }
                 
                 QDialog { 
-                    background-color: #2a2a2e; 
-                    border: 1px solid #3a3a3e;
-                    border-radius: 8px; 
+                    background-color: #242428; 
+                    border: 1px solid #323236;
+                    border-radius: 12px; 
                 }
                 
                 /* Menu Bar - discreto */
                 QMenuBar { 
-                    background-color: #2a2a2e; 
-                    color: #d2d2d7; 
-                    padding: 4px;
-                    border-bottom: 1px solid #3a3a3e;
+                    background-color: #242428; 
+                    color: #ebebf0; 
+                    padding: 2px;
+                    border-bottom: 1px solid #323236;
                 }
                 QMenuBar::item { 
-                    padding: 6px 12px; 
-                    border-radius: 6px; 
-                    margin-right: 2px;
+                    padding: 4px 8px; 
+                    border-radius: 8px; 
+                    margin-right: 4px;
                 }
                 QMenuBar::item:selected { 
-                    background-color: #3a3a3e; 
+                    background-color: rgba(255, 255, 255, 0.1); 
                 }
                 
                 QMenu { 
-                    background-color: #2e2e32; 
-                    color: #d2d2d7; 
-                    border: 1px solid #45454a;
-                    border-radius: 8px; 
-                    padding: 6px;
+                    background-color: #2c2c30; 
+                    color: #ebebf0; 
+                    border: 1px solid #3e3e42;
+                    border-radius: 6px; 
+                    padding: 4px;
                 }
                 QMenu::item { 
-                    padding: 8px 32px 8px 12px;
-                    border-radius: 6px;
-                    margin-bottom: 2px;
+                    padding: 4px 28px 4px 12px;
+                    border-radius: 4px;
+                    margin-bottom: 0px;
                 }
                 QMenu::item:selected { 
-                    background-color: #4682b4;  /* Azul sutil para seleção */
-                    color: #f0f0f5;
+                    background-color: #0A84FF;  /* Azul vibrante moderno */
+                    color: white;
                 }
                 QMenu::separator { 
                     height: 1px; 
@@ -1688,64 +1711,67 @@ class MainWindow(QMainWindow):
                 
                 /* Toolbar - compacta e funcional */
                 QToolBar { 
-                    background-color: #2a2a2e; 
+                    background-color: #242428; 
                     border: none;
-                    border-bottom: 1px solid #3a3a3e;
-                    spacing: 6px; 
-                    padding: 6px 10px;
+                    border-bottom: 1px solid #323236;
+                    spacing: 4px; 
+                    padding: 2px 4px;
                 }
                 QToolBar::separator { 
                     width: 1px; 
-                    background: #45454a; 
+                    background: #3e3e42; 
                     margin: 4px 8px; 
                 }
                 QToolButton { 
                     background: transparent; 
                     border: 1px solid transparent; 
                     border-radius: 6px; 
-                    padding: 6px 10px; 
-                    color: #b0b0b5;
+                    padding: 4px 8px; 
+                    color: #ebebf0;
                 }
                 QToolButton:hover { 
-                    background-color: #3a3a3e; 
-                    border: 1px solid #45454a;
-                    color: #d2d2d7;
+                    background-color: rgba(255, 255, 255, 0.08); 
+                    border: 1px solid rgba(255, 255, 255, 0.05);
                 }
                 QToolButton:pressed { 
-                    background-color: #4682b4; 
-                    border: 1px solid #4682b4;
-                    color: #f0f0f5;
+                    background-color: rgba(0, 0, 0, 0.2); 
+                    border: 1px solid transparent;
                 }
                 
                 /* Input Fields */
                 QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
-                    background-color: #1e1e22;
-                    border: 1px solid #3a3a3e;
+                    background-color: #171719;
+                    border: 1px solid #323236;
                     border-radius: 6px;
-                    padding: 6px;
-                    color: #d2d2d7;
-                    selection-background-color: #4682b4;
+                    padding: 4px 6px;
+                    color: #ebebf0;
+                    selection-background-color: #0A84FF;
                 }
                 QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
-                    border: 1px solid #4682b4;
-                    background-color: #222226;
+                    border: 1px solid #0A84FF;
+                    background-color: #1c1c1e;
                 }
                 
-                /* Push Buttons */
+                /* Push Buttons - Modern OS Integration */
                 QPushButton {
-                    background-color: #3a3a3e;
-                    color: #d2d2d7;
-                    border: 1px solid #45454a;
+                    background-color: #343438;
+                    color: #ebebf0;
+                    border: 1px solid #4a4a50;
+                    border-bottom: 2px solid #28282c;
                     border-radius: 6px;
-                    padding: 6px 14px;
+                    padding: 4px 12px;
                 }
                 QPushButton:hover {
-                    background-color: #45454a;
+                    background-color: #3e3e42;
                     border: 1px solid #55555a;
+                    border-bottom: 2px solid #323236;
                 }
                 QPushButton:pressed {
-                    background-color: #4682b4;
-                    border: 1px solid #4682b4;
+                    background-color: #28282c;
+                    border: 1px solid #28282c;
+                    border-bottom: 1px solid #28282c;
+                    padding-top: 5px;
+                    padding-bottom: 3px;
                     color: white;
                 }
                 
@@ -1812,110 +1838,41 @@ class MainWindow(QMainWindow):
                 
                 /* Tabela - limpa, legível */
                 QTableWidget { 
-                    background-color: #1e1e22; 
-                    alternate-background-color: #24242a;
-                    color: #d2d2d7; 
-                    gridline-color: #2e2e32;
-                    selection-background-color: rgba(70, 130, 180, 0.4);
-                    selection-color: #f0f0f5;
-                    border: 1px solid #3a3a3e;
-                    border-radius: 4px;
+                    background-color: #1c1c1e; 
+                    alternate-background-color: #202022;
+                    color: #ebebf0; 
+                    gridline-color: #2c2c30;
+                    selection-background-color: rgba(10, 132, 255, 0.3);
+                    selection-color: #ffffff;
+                    border: 1px solid #323236;
+                    border-radius: 8px;
                 }
                 QTableWidget::item { 
-                    padding: 8px 10px;
+                    padding: 2px 4px;
                     border: none;
                 }
                 QTableWidget::item:selected { 
-                    background-color: rgba(70, 130, 180, 0.35);
+                    background-color: rgba(10, 132, 255, 0.4);
                 }
                 QHeaderView::section { 
-                    background-color: #2e2e32; 
-                    color: #a0a0a5;
-                    padding: 8px 10px;
+                    background-color: #242428; 
+                    color: #b0b0b5;
+                    padding: 4px 6px;
                     border: none;
-                    border-right: 1px solid #3a3a3e;
-                    border-bottom: 1px solid #3a3a3e;
+                    border-right: 1px solid #323236;
+                    border-bottom: 1px solid #323236;
                     font-weight: 500;
                 }
                 
-                /* Inputs - funcionais */
-                QLineEdit, QSpinBox, QComboBox { 
-                    background-color: #1e1e22; 
-                    color: #d2d2d7; 
-                    border: 1px solid #3a3a3e;
-                    border-radius: 4px; 
-                    padding: 8px 10px;
-                    selection-background-color: #4682b4;
-                }
-                QLineEdit:focus, QSpinBox:focus, QComboBox:focus { 
-                    border: 1px solid #4682b4;
-                }
-                QComboBox::drop-down { 
-                    border: none; 
-                    padding-right: 8px;
-                }
-                
-                /* Botões - discretos */
-                QPushButton { 
-                    background-color: #3a3a3e; 
-                    color: #d2d2d7; 
-                    border: 1px solid #4a4a4e;
-                    border-radius: 4px;
-                    padding: 8px 16px;
-                    font-weight: 500;
-                }
-                QPushButton:hover { 
-                    background-color: #4a4a4e;
-                    border-color: #5a5a5e;
-                }
-                QPushButton:pressed { 
-                    background-color: #4682b4;
-                    border-color: #4682b4;
-                    color: #f0f0f5;
-                }
-                QPushButton:default { 
-                    background-color: #4682b4;
-                    border-color: #5692c4;
-                    color: #f0f0f5;
-                }
-                
-                /* ScrollBars - discretas */
-                QScrollBar:vertical { 
-                    background: #26262a; 
-                    width: 10px;
-                    border-radius: 5px;
-                }
-                QScrollBar::handle:vertical { 
-                    background-color: #4a4a4e;
-                    border-radius: 5px;
-                    min-height: 30px;
-                    margin: 2px;
-                }
-                QScrollBar::handle:vertical:hover { 
-                    background-color: #5a5a5e;
-                }
-                QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { 
-                    height: 0;
-                }
-                QScrollBar:horizontal { 
-                    background: #26262a; 
-                    height: 10px;
-                    border-radius: 5px;
-                }
-                QScrollBar::handle:horizontal { 
-                    background-color: #4a4a4e;
-                    border-radius: 5px;
-                    min-width: 30px;
-                    margin: 2px;
-                }
+
                 
                 /* GroupBox - containers */
                 QGroupBox { 
                     background-color: #2a2a2e;
                     border: 1px solid #3a3a3e;
                     border-radius: 6px;
-                    margin-top: 12px;
-                    padding: 12px 10px 10px 10px;
+                    margin-top: 10px;
+                    padding: 8px 6px 6px 6px;
                 }
                 QGroupBox::title { 
                     color: #a0a0a5;
@@ -1980,7 +1937,7 @@ class MainWindow(QMainWindow):
                     background-color: #2a2a2e;
                     color: #909095;
                     border-top: 1px solid #3a3a3e;
-                    padding: 4px 8px;
+                    padding: 2px 6px;
                 }
                 
                 /* DockWidget */
@@ -1990,7 +1947,7 @@ class MainWindow(QMainWindow):
                 }
                 QDockWidget::title { 
                     background-color: #2e2e32;
-                    padding: 8px 10px;
+                    padding: 4px 6px;
                     border-bottom: 1px solid #3a3a3e;
                 }
                 
@@ -2023,15 +1980,18 @@ class MainWindow(QMainWindow):
                 QTabBar::tab { 
                     background-color: #2a2a2e;
                     color: #909095;
-                    padding: 8px 16px;
+                    padding: 4px 12px;
                     border: 1px solid #3a3a3e;
-                    border-bottom: none;
-                    border-radius: 4px 4px 0 0;
+                    border-top: none;
+                    border-bottom: 1px solid #3a3a3e; /* Added for South position */
+                    border-radius: 0 0 4px 4px;
+                    margin-right: 2px;
                 }
                 QTabBar::tab:selected { 
                     background-color: #26262a;
                     color: #d2d2d7;
                     border-bottom: 1px solid #26262a;
+                    border-top: 2px solid #0A84FF; /* Added for South position */
                 }
             """
             app.setStyleSheet(dark_stylesheet)
@@ -2084,7 +2044,6 @@ class MainWindow(QMainWindow):
             light_stylesheet = """
                 * { 
                     font-family: "Segoe UI", "SF Pro Text", "Roboto", -apple-system, sans-serif;
-                    font-size: 13px;
                 }
                 
                 QWidget { 
@@ -2110,7 +2069,7 @@ class MainWindow(QMainWindow):
                     border-bottom: 1px solid #d0d0d4;
                 }
                 QMenuBar::item { 
-                    padding: 6px 10px; 
+                    padding: 2px 8px; 
                     border-radius: 4px; 
                 }
                 QMenuBar::item:selected { 
@@ -2125,7 +2084,7 @@ class MainWindow(QMainWindow):
                     padding: 4px;
                 }
                 QMenu::item { 
-                    padding: 8px 24px 8px 12px;
+                    padding: 4px 24px 4px 12px;
                     border-radius: 4px;
                 }
                 QMenu::item:selected { 
@@ -2140,11 +2099,11 @@ class MainWindow(QMainWindow):
                 
                 /* Toolbar */
                 QToolBar { 
-                    background-color: #e5e5e8; 
+                    background-color: #f5f5f8; 
                     border: none;
                     border-bottom: 1px solid #d0d0d4;
                     spacing: 4px; 
-                    padding: 4px 8px;
+                    padding: 2px 4px;
                 }
                 QToolBar::separator { 
                     width: 1px; 
@@ -2153,43 +2112,43 @@ class MainWindow(QMainWindow):
                 }
                 QToolButton { 
                     background: transparent; 
-                    border: none; 
-                    border-radius: 4px; 
-                    padding: 6px 8px; 
-                    color: #505055;
-                }
-                QToolButton:hover { 
-                    background-color: #d5d5d8; 
+                    border: 1px solid transparent; 
+                    border-radius: 6px; 
+                    padding: 2px 6px; 
                     color: #2d2d32;
                 }
+                QToolButton:hover { 
+                    background-color: rgba(0, 0, 0, 0.05); 
+                    border: 1px solid rgba(0, 0, 0, 0.03);
+                }
                 QToolButton:pressed { 
-                    background-color: #4682b4; 
-                    color: #fafafc;
+                    background-color: rgba(0, 0, 0, 0.08); 
+                    border: 1px solid transparent;
                 }
                 
                 /* Tabela */
                 QTableWidget { 
-                    background-color: #fafafc; 
-                    alternate-background-color: #f2f2f5;
+                    background-color: #ffffff; 
+                    alternate-background-color: #f8f8fa;
                     color: #2d2d32; 
-                    gridline-color: #e0e0e4;
-                    selection-background-color: rgba(70, 130, 180, 0.3);
-                    selection-color: #2d2d32;
+                    gridline-color: #ebebee;
+                    selection-background-color: rgba(10, 132, 255, 0.2);
+                    selection-color: #000000;
                     border: 1px solid #d0d0d4;
-                    border-radius: 4px;
+                    border-radius: 8px;
                 }
                 QTableWidget::item { 
-                    padding: 8px 10px;
+                    padding: 2px 4px;
                     border: none;
                     color: #2d2d32;
                 }
                 QTableWidget::item:selected { 
-                    background-color: rgba(70, 130, 180, 0.25);
+                    background-color: rgba(10, 132, 255, 0.3);
                 }
                 QHeaderView::section { 
-                    background-color: #e5e5e8; 
+                    background-color: #f5f5f8; 
                     color: #606065;
-                    padding: 8px 10px;
+                    padding: 4px 6px;
                     border: none;
                     border-right: 1px solid #d0d0d4;
                     border-bottom: 1px solid #d0d0d4;
@@ -2198,37 +2157,47 @@ class MainWindow(QMainWindow):
                 
                 /* Inputs */
                 QLineEdit, QSpinBox, QComboBox { 
-                    background-color: #fafafc; 
+                    background-color: #ffffff; 
                     color: #2d2d32; 
-                    border: 1px solid #d0d0d4;
-                    border-radius: 4px; 
-                    padding: 8px 10px;
-                    selection-background-color: #4682b4;
+                    border: 1px solid #c0c0c4;
+                    border-bottom: 2px solid #d0d0d4;
+                    border-radius: 6px; 
+                    padding: 4px 6px;
+                    selection-background-color: #0A84FF;
+                    selection-color: white;
                 }
                 QLineEdit:focus, QSpinBox:focus, QComboBox:focus { 
-                    border: 1px solid #4682b4;
+                    border: 1px solid #0A84FF;
+                    border-bottom: 2px solid #0A84FF;
                 }
                 
                 /* Botões */
                 QPushButton { 
-                    background-color: #e5e5e8; 
+                    background-color: #ffffff; 
                     color: #2d2d32; 
-                    border: 1px solid #d0d0d4;
-                    border-radius: 4px;
-                    padding: 8px 16px;
+                    border: 1px solid #c0c0c4;
+                    border-bottom: 2px solid #d0d0d4;
+                    border-radius: 6px;
+                    padding: 4px 12px;
                     font-weight: 500;
                 }
                 QPushButton:hover { 
-                    background-color: #d5d5d8;
+                    background-color: #f4f4f7;
+                    border: 1px solid #b0b0b4;
+                    border-bottom: 2px solid #c0c0c4;
                 }
                 QPushButton:pressed { 
-                    background-color: #4682b4;
-                    color: #fafafc;
+                    background-color: #e8e8eb;
+                    border: 1px solid #b0b0b4;
+                    border-bottom: 1px solid #b0b0b4;
+                    padding-top: 5px;
+                    padding-bottom: 3px;
                 }
                 QPushButton:default { 
-                    background-color: #4682b4;
-                    color: #fafafc;
-                    border-color: #5692c4;
+                    background-color: #0A84FF;
+                    color: white;
+                    border: 1px solid #005bb5;
+                    border-bottom: 2px solid #004494;
                 }
                 
                 /* ScrollBars */
@@ -2266,8 +2235,8 @@ class MainWindow(QMainWindow):
                     background-color: #f0f0f3;
                     border: 1px solid #d0d0d4;
                     border-radius: 6px;
-                    margin-top: 12px;
-                    padding: 12px 10px 10px 10px;
+                    margin-top: 10px;
+                    padding: 8px 6px 6px 6px;
                 }
                 QGroupBox::title { 
                     color: #606065;
@@ -2284,47 +2253,49 @@ class MainWindow(QMainWindow):
                     spacing: 8px;
                 }
                 QCheckBox::indicator { 
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 3px;
-                    background-color: #fafafc;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 4px;
+                    background-color: #ffffff;
                     border: 1px solid #b0b0b4;
                 }
                 QCheckBox::indicator:checked { 
-                    background-color: #4682b4;
+                    background-color: #0A84FF;
+                    image: url(icons/check_white.png); /* Fallback to color if no check icon */
                     border: none;
                 }
                 QRadioButton::indicator { 
-                    width: 16px;
-                    height: 16px;
-                    border-radius: 8px;
-                    background-color: #fafafc;
+                    width: 18px;
+                    height: 18px;
+                    border-radius: 9px;
+                    background-color: #ffffff;
                     border: 1px solid #b0b0b4;
                 }
                 QRadioButton::indicator:checked { 
-                    background-color: #4682b4;
-                    border: none;
+                    background-color: #0A84FF;
+                    border: 4px solid #ffffff;
                 }
                 
                 /* Sliders */
                 QSlider::groove:horizontal { 
                     background: #d0d0d4;
-                    height: 4px;
-                    border-radius: 2px;
+                    height: 6px;
+                    border-radius: 3px;
                 }
                 QSlider::handle:horizontal { 
-                    background: #a0a0a4;
-                    width: 14px;
-                    height: 14px;
+                    background: #ffffff;
+                    border: 1px solid #a0a0a4;
+                    width: 16px;
+                    height: 16px;
                     margin: -5px 0;
-                    border-radius: 7px;
+                    border-radius: 8px;
                 }
                 QSlider::handle:horizontal:hover {
-                    background: #909094;
+                    background: #f4f4f7;
                 }
                 QSlider::sub-page:horizontal { 
-                    background: #4682b4;
-                    border-radius: 2px;
+                    background: #0A84FF;
+                    border-radius: 3px;
                 }
                 
                 /* StatusBar */
@@ -2332,7 +2303,7 @@ class MainWindow(QMainWindow):
                     background-color: #e5e5e8;
                     color: #606065;
                     border-top: 1px solid #d0d0d4;
-                    padding: 4px 8px;
+                    padding: 2px 6px;
                 }
                 
                 /* DockWidget */
@@ -2341,7 +2312,7 @@ class MainWindow(QMainWindow):
                 }
                 QDockWidget::title { 
                     background-color: #e5e5e8;
-                    padding: 8px 10px;
+                    padding: 4px 6px;
                     border-bottom: 1px solid #d0d0d4;
                 }
                 
@@ -2367,17 +2338,18 @@ class MainWindow(QMainWindow):
                 
                 /* Tabs */
                 QTabWidget::pane { 
-                    background-color: #ebebee;
+                    background-color: #ffffff;
                     border: 1px solid #d0d0d4;
-                    border-radius: 4px;
+                    border-radius: 8px;
                 }
                 QTabBar::tab { 
-                    background-color: #e0e0e4;
+                    background-color: #f5f5f8;
                     color: #606065;
-                    padding: 8px 16px;
+                    padding: 4px 12px;
                     border: 1px solid #d0d0d4;
-                    border-bottom: none;
-                    border-radius: 4px 4px 0 0;
+                    border-top: none;
+                    border-radius: 0 0 6px 6px;
+                    margin-right: 2px;
                 }
                 QTabBar::tab:selected { 
                     background-color: #ebebee;
@@ -2731,7 +2703,7 @@ class MainWindow(QMainWindow):
         self._set_wave_theme(next_key)
 
     def _update_title(self):
-        title = "Copaiba Lexikon | 2026.3"
+        title = "Copaiba Lexikon | 2026.4"
         if self._current_path:
             title += f" - {self._current_path.name}"
             if self._dirty:
@@ -2855,7 +2827,7 @@ class MainWindow(QMainWindow):
             theme_map[next_theme].setChecked(True)
             self._set_wave_theme(next_theme)
 
-    def _update_progress(self):
+    def _update_progress(self, specific_row: int = None):
         total = self.table.rowCount()
         completed = len(self._completed_aliases)
         
@@ -2886,7 +2858,7 @@ class MainWindow(QMainWindow):
             self._progress_label.setText("0/0 (0%)")
         
         # Atualiza cores das linhas da tabela
-        self._update_row_colors()
+        self._update_row_colors(specific_row=specific_row)
         
         # Atualiza progresso no Discord Rich Presence
         if DISCORD_RPC_AVAILABLE:
@@ -2896,7 +2868,7 @@ class MainWindow(QMainWindow):
             except:
                 pass
 
-    def _update_row_colors(self):
+    def _update_row_colors(self, specific_row: int = None):
         """
         Atualiza as cores de fundo das linhas da tabela baseado no status:
         - Verde (transparente): Concluído (marcado com ✓)
@@ -2909,9 +2881,15 @@ class MainWindow(QMainWindow):
             COLOR_COMPLETED = QColor(76, 175, 80, 40)      # Verde suave transparente
             COLOR_MISSING = QColor(33, 150, 243, 50)       # Azul suave transparente
             COLOR_UNCONFIGURED = QColor(128, 128, 128, 30) # Cinza suave transparente
+            COLOR_CONFLICT = QColor(255, 80, 80, 70)       # Vermelho suave de alerta
             COLOR_NONE = QColor(0, 0, 0, 0)                # Transparente (sem cor)
             
-            for row in range(self.table.rowCount()):
+            rows_to_update = [specific_row] if specific_row is not None else range(self.table.rowCount())
+            
+            for row in rows_to_update:
+                if row < 0 or row >= self.table.rowCount():
+                    continue
+                    
                 # Determina o status da linha
                 fav_item = self.table.item(row, self.COL_FAV)
                 is_completed = fav_item and fav_item.checkState() == Qt.CheckState.Checked
@@ -2942,8 +2920,50 @@ class MainWindow(QMainWindow):
                 except (ValueError, AttributeError):
                     has_missing_values = True
                 
-                # Determina a cor a aplicar
-                if is_completed:
+                # Verifica conflitos de parâmetros que quebram loop em resamplers e limites
+                has_conflict = False
+                tooltip_msg = ""
+                try:
+                    def safe_float(item):
+                        if not item or not item.text().strip(): return 0.0
+                        return float(item.text())
+
+                    off_val = safe_float(offset_item)
+                    ovl_val = safe_float(overlap_item)
+                    pre_val = safe_float(preutter_item)
+                    c_val = safe_float(consonant_item)
+                    cut_val = safe_float(cutoff_item)
+                    
+                    # 1. Falta espaço para loop (Consoante invade o limite direito relativo)
+                    if cut_val < 0 and c_val >= -cut_val:
+                        has_conflict = True
+                        tooltip_msg = "⚠️ Conflito: O valor da Consoante ultrapassa o limite direito (Cutoff), impossibilitando o loop."
+                    # 2. Overlap invadindo preutterance
+                    elif pre_val != 0 and ovl_val > pre_val:
+                        has_conflict = True
+                        tooltip_msg = "⚠️ Erro: O Overlap (verde) não pode ser maior que o Preutterance (vermelho)."
+                    # 3. Preutterance invadindo consoante
+                    elif c_val != 0 and pre_val > c_val:
+                        has_conflict = True
+                        tooltip_msg = "⚠️ Erro: O Preutterance não deveria ser maior que a área Consonant fixa."
+                    # 4. Limite Direito invadindo o Esquerdo (offset) se houver áudio ou for óbvio
+                    elif hasattr(self, '_audio_dur') and self._audio_dur and cut_val > 0:
+                        right_limit_ms = (self._audio_dur * 1000.0) - cut_val
+                        if right_limit_ms <= off_val:
+                            has_conflict = True
+                            tooltip_msg = "⚠️ Erro Fatal: O Cutoff invadiu o Offset (Áudio invisível/negativo)."
+                except (ValueError, AttributeError):
+                    pass
+                
+                # Determina a cor a aplicar e seta o Tooltip
+                if alias_item:
+                    alias_item.setToolTip("") # Limpa tooltip
+                    
+                if has_conflict:
+                    row_color = COLOR_CONFLICT
+                    if alias_item:
+                        alias_item.setToolTip(tooltip_msg)
+                elif is_completed:
                     row_color = COLOR_COMPLETED
                 elif has_missing_values:
                     row_color = COLOR_MISSING
@@ -3063,9 +3083,8 @@ class MainWindow(QMainWindow):
         # Tema claro/escuro
         dark_theme = self.settings.value("dark_theme", True, type=bool)
         self.act_toggle_theme.setChecked(dark_theme)
-        if not dark_theme:
-            self._toggle_app_theme(dark_theme)
-
+        # Aplica o tema independentemente de qual seja para forçar as modernizações da stylesheet
+        self._toggle_app_theme(dark_theme)
         # Teclas de parâmetros personalizadas
         keybindings_json = self.settings.value("keybindings", "")
         if keybindings_json:

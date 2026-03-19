@@ -3,7 +3,7 @@
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
     QLabel, QSlider, QComboBox, QCheckBox, QPushButton,
-    QSpinBox, QFormLayout, QColorDialog, QFrame
+    QSpinBox, QFormLayout, QColorDialog, QFrame, QDockWidget, QDialog
 )
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QColor, QPalette
@@ -232,11 +232,6 @@ class SpectrogramConfigWidget(QWidget):
 
         layout.addWidget(extra_viz_group)
 
-        # Hidden controls initialized for logic compatibility (if needed) but not added to layout
-        # Or add them to a collapsible "More" section? Screenshot implies simple UI.
-        # I'll initializing the variables so methods don't break, but they won't be visible.
-        self._init_hidden_controls()
-
         layout.addStretch()
         
         # Close button at bottom right (usually handled by Dialog wrapper, but if widget is standalone...)
@@ -248,21 +243,16 @@ class SpectrogramConfigWidget(QWidget):
         btn_layout.addWidget(self.btn_close)
         layout.addLayout(btn_layout)
 
-    def _init_hidden_controls(self):
-        # Initialize other variables to avoid AttributeErrors
-        self._spectrum_color_btn = ColorPreviewButton()
-        self._min_freq_spin = QSpinBox()
-        self._max_freq_spin = QSpinBox()
-        self._gamma_slider = QSlider()
-        
     def _close_parent(self):
-        # Try to close parent window/dock
+        # Tenta fechar o DockWidget ou Dialog que contém este widget
         parent = self.parent()
         while parent:
-            if hasattr(parent, 'close'):
-                parent.close()
-                break
+            if isinstance(parent, (QDockWidget, QDialog)):
+                parent.hide() # Usar hide() é mais seguro para Docks persistentes
+                return
             parent = parent.parent()
+        self.hide() # Fallback
+
 
     def _choose_background_color(self):
         color = QColorDialog.getColor(self._background_color, self, "Escolher Cor",

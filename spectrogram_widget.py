@@ -403,9 +403,16 @@ class SpectrogramWidget(QWidget):
             self._compute_spectrogram()
 
     def clear(self):
-        if self._worker is not None and self._worker.isRunning():
-            self._worker.cancel()
+        if self._worker is not None:
+            old_worker = self._worker
             self._worker = None
+            if old_worker.isRunning():
+                old_worker.cancel()
+                self._running_workers.append(old_worker)
+                old_worker.finished.connect(lambda _, w=old_worker: self._cleanup_worker(w))
+                old_worker.error.connect(lambda _, w=old_worker: self._cleanup_worker(w))
+            else:
+                old_worker.deleteLater()
 
         self._wave_data = None
         self._spectrogram_cache = None

@@ -144,6 +144,7 @@ class TableController:
             mw._push_undo(edits)
             mw.statusBar().showMessage(f"Colado em {len(edits)} células", 2000)
             mw._load_waveform_for_current_row()
+            mw._update_row_colors()
 
     # ============================================================
     # Presets

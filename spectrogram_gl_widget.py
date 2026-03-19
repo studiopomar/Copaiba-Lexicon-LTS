@@ -667,9 +667,16 @@ class SpectrogramGLWidget(QOpenGLWidget):
         return None
 
     def clear(self):
-        if self._worker and self._worker.isRunning():
-            self._worker.cancel()
+        if self._worker is not None:
+            old = self._worker
             self._worker = None
+            if old.isRunning():
+                old.cancel()
+                self._running_workers.append(old)
+                old.finished.connect(lambda _, w=old: self._cleanup_worker(w))
+                old.error.connect(lambda _, w=old: self._cleanup_worker(w))
+            else:
+                old.deleteLater()
         self._wave_data = None
         self._spectrogram_cache = None
         self._cache_valid = False

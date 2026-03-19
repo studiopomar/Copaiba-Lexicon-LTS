@@ -68,6 +68,7 @@ class WaveformWidget(QWidget):
         self._audio_dur = 0.0
         self._normalize_enabled = True  # Normalização de amplitude
         self._sector_playback_enabled = False  # Modo de reprodução por setor
+        self._smooth_scroll_enabled = True  # Deslizamento suave na reprodução
         self._saved_zoom_width = None  # Largura do zoom persistente
         self._is_loading_waveform = False  # Flag para bloquear update de zoom durante carregamento
         
@@ -227,6 +228,49 @@ class WaveformWidget(QWidget):
             return
 
         current_width = x2 - x1
+        new_width = current_width * factor
+
+        center = (x1 + x2) / 2.0
+        new_x1 = center - new_width / 2.0
+        new_x2 = center + new_width / 2.0
+
+        min_range = 0.01
+        if new_x2 - new_x1 < min_range:
+            new_x1 = center - min_range / 2.0
+            new_x2 = center + min_range / 2.0
+
+        if new_x1 < 0:
+            new_x2 -= new_x1
+            new_x1 = 0
+        if new_x2 > self._audio_dur:
+            new_x1 -= (new_x2 - self._audio_dur)
+            new_x2 = self._audio_dur
+            if new_x1 < 0:
+                new_x1 = 0
+
+        self._plot.setXRange(new_x1, new_x2, padding=0)
+
+    def _apply_zoom_vertical(self, factor):
+        """Aplica zoom vertical (ganho visual) na Waveform."""
+        if self._audio_dur <= 0: return
+        
+        try:
+            _, (y1, y2) = self._plot.viewRange()
+        except:
+            return
+            
+        current_height = y2 - y1
+        new_height = current_height * factor
+        
+        # Não permite zoom muito extremo (de -1 a 1 para normalizado, então a altura é ~2)
+        if new_height > 10.0: new_height = 10.0
+        if new_height < 0.01: new_height = 0.01
+        
+        center_y = (y1 + y2) / 2.0
+        new_y1 = center_y - (new_height / 2.0)
+        new_y2 = center_y + (new_height / 2.0)
+        
+        self._plot.setYRange(new_y1, new_y2, padding=0)
         if current_width <= 0: return
 
         center = x1 + current_width / 2
@@ -443,8 +487,26 @@ class WaveformWidget(QWidget):
     # --- NOVO: Lógica de Arraste de Marcador via Mouse ---
     def _on_mouse_pressed(self, event):
         if event.button() == Qt.LeftButton:
+            # 0. Prioridade: Alt + Clique (Tocar do tempo do clique até o final)
+            if event.modifiers() & Qt.AltModifier:
+                pos = event.pos() 
+                scene_pos = self._plot.mapToScene(pos)
+                vb = self._plot.plotItem.vb
+                mouse_point = vb.mapSceneToView(scene_pos)
+                time_start_s = mouse_point.x()
+                
+                # Obter tempo de cutoff visual
+                markers = self._marker_manager.get_marker_positions()
+                cutoff_s = markers.get('cutoff', self._audio_dur)
+                
+                if time_start_s < cutoff_s:
+                    self.playSegmentRequested.emit(time_start_s * 1000, cutoff_s * 1000)
+                    self.start_playback_visualization(time_start_s, cutoff_s)
+                event.accept()
+                return
+
              # 1. Prioridade: Arraste de Marcador (Mouse Only)
-            if self._active_marker_key is None and not (event.modifiers() & Qt.AltModifier):
+            if self._active_marker_key is None:
                 pos = event.pos() 
                 scene_pos = self._plot.mapToScene(pos)
                 vb = self._plot.plotItem.vb
@@ -498,24 +560,6 @@ class WaveformWidget(QWidget):
 
         # Verifica se foi clique esquerdo e se não estamos arrastando um marcador (via teclado)
         if event.button() == Qt.LeftButton and self._active_marker_key is None:
-            # Alt + Clique: Tocar do cursor até o cutoff
-            if event.modifiers() & Qt.AltModifier:
-                pos = event.scenePos()
-                vb = self._plot.getViewBox()
-                if vb:
-                    mouse_point = vb.mapSceneToView(pos)
-                    time_start_s = mouse_point.x()
-                    
-                    # Obter tempo de cutoff visual
-                    markers = self._marker_manager.get_marker_positions()
-                    cutoff_s = markers.get('cutoff', self._audio_dur)
-                    
-                    if time_start_s < cutoff_s:
-                        self.playSegmentRequested.emit(time_start_s * 1000, cutoff_s * 1000)
-                        self.start_playback_visualization(time_start_s, cutoff_s)
-                event.accept()
-                return
-
             if self._sector_playback_enabled:
                 self._play_sector_at_mouse()
             else:
@@ -692,6 +736,26 @@ class WaveformWidget(QWidget):
         pos = self._playback_start_t + (now - self._playback_wall_start)
         self._playhead.setValue(pos)
         
+        # --- Deslizamento Suave (Smooth Scrolling) ---
+        if getattr(self, '_smooth_scroll_enabled', True):
+            try:
+                (x1, x2), _ = self._plot.viewRange()
+                view_width = x2 - x1
+                # Empurra a view se o playhead cruzar 75% da tela visível
+                threshold = x1 + (view_width * 0.75)
+                if pos > threshold:
+                    shift = pos - threshold
+                    new_x1 = x1 + shift
+                    new_x2 = x2 + shift
+                    
+                    # Limita para não rolar infinitamente além do áudio
+                    if new_x1 <= self._audio_dur:
+                        self._plot.setXRange(new_x1, new_x2, padding=0)
+                        self._update_views_sync()  # Sincroniza o minimap e espectrograma
+            except Exception:
+                pass
+        # ---------------------------------------------
+        
         # Atualizar cursor no minimapa
         if self._show_minimap:
             self._minimap_widget.set_cursor_position(pos)
@@ -758,6 +822,10 @@ class WaveformWidget(QWidget):
     def set_sector_playback_enabled(self, enabled: bool):
         """Ativa ou desativa o modo de reprodução por setor ao clicar."""
         self._sector_playback_enabled = enabled
+
+    def set_smooth_scroll_enabled(self, enabled: bool):
+        """Ativa ou desativa o deslizamento suave durante a reprodução."""
+        self._smooth_scroll_enabled = enabled
 
     def set_wave_colors(self, pen, bg=None):
         self._plot.set_wave_pen(pg.mkPen(pen, width=1))
