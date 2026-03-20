@@ -59,6 +59,7 @@ class SpectrogramConfigWidget(QWidget):
     freqRangeChanged = Signal(int, int)
     gpuChanged = Signal(bool)
     colorBackgroundChanged = Signal(QColor)
+    colorSpectrumChanged = Signal(QColor)
     fftParamsChanged = Signal(int, int, int) # n_fft, hop_size, window_size
 
     def __init__(self, parent=None):
@@ -66,8 +67,6 @@ class SpectrogramConfigWidget(QWidget):
         self._background_color = QColor(0, 0, 0)
         self._spectrum_color = QColor(0, 255, 128)
         self._init_ui()
-
-    # ... (skipping unchanged code) ...
 
     def _on_freq_changed(self):
         min_freq = self._min_freq_spin.value()
@@ -138,23 +137,26 @@ class SpectrogramConfigWidget(QWidget):
 
         # === GRUPO: PERSONALIZAR CORES ===
         color_group = QGroupBox("Personalizar Cores")
-        color_layout = QVBoxLayout(color_group) # Vertical, screenshot shows big button
-        
-        # Cor de Fundo Button
-        self._bg_color_btn = QPushButton("Cor de Fundo")
-        self._bg_color_btn.setFixedHeight(40) # Taller button
-        self._bg_color_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #2a5d7d; 
-                color: white; 
-                border-radius: 4px;
-                font-size: 12px;
-            }
-            QPushButton:hover { background-color: #3e7fa6; }
-        """)
+        color_layout = QVBoxLayout(color_group)
+
+        # Cor de Fundo Row
+        bg_row = QHBoxLayout()
+        bg_row.addWidget(QLabel("Fundo:"))
+        self._bg_color_btn = ColorPreviewButton(self._background_color)
         self._bg_color_btn.clicked.connect(self._choose_background_color)
-        color_layout.addWidget(self._bg_color_btn)
-        
+        bg_row.addWidget(self._bg_color_btn)
+        bg_row.addStretch()
+        color_layout.addLayout(bg_row)
+
+        # Cor do Espectro Row
+        spec_row = QHBoxLayout()
+        spec_row.addWidget(QLabel("Espectro:"))
+        self._spectrum_color_btn = ColorPreviewButton(self._spectrum_color)
+        self._spectrum_color_btn.clicked.connect(self._choose_spectrum_color)
+        spec_row.addWidget(self._spectrum_color_btn)
+        spec_row.addStretch()
+        color_layout.addLayout(spec_row)
+
         layout.addWidget(color_group)
 
         # === GRUPO: PARÂMETROS DE ÁUDIO (FFT) ===
