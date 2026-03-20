@@ -1,0 +1,333 @@
+# ==============================================================================
+# COPAIBA LEXIKON - ESPERANTO
+# ==============================================================================
+
+# ==============================================================================
+# ĈEFAJ MENUOJ
+# ==============================================================================
+
+menu.file = Dosiero
+menu.edit = Redakti
+menu.view = Rigardo
+menu.playback = Ludado
+menu.settings = Agordoj
+menu.encoding = Kodado
+menu.render = Signala rendado
+menu.plugins = Kromaĵoj
+menu.help = Helpo
+menu.language = Lingvo
+
+# Submenuoj
+menu.gpu = GPU-Akcelo
+menu.enc_utau = UTAU Klasika (Japana)
+menu.enc_other = Aliaj lingvoj
+menu.plugins_auto = Aŭtomatigo
+menu.plugins_analysis = Analizo
+menu.plugins_manage = Administrado
+menu.plugins_convert = Konverto
+menu.plugins_validate = Validigo
+
+# ==============================================================================
+# DOSIERO-MENUO
+# ==============================================================================
+
+file.open_voicebank = Malfermi voĉbankon...
+file.open_oto = Malfermi oto.ini...
+file.open_project = Malfermi projekton...
+file.save_project = Konservi projekton
+file.recent_projects = Lastaj projektoj
+file.no_recent = (Neniuj lastaj projektoj)
+file.clear_recent = Forviŝi liston
+file.save = Konservi
+file.save_as = Konservi kiel...
+file.reveal = Malfermi voĉbank-dosierujon
+file.reload = Reŝargi (Ctrl+F5)
+file.exit = Eliri
+
+# ==============================================================================
+# REDAKTI-MENUO
+# ==============================================================================
+
+edit.undo = Malfari
+edit.redo = Refari
+edit.apply_preset = Apliki Antaŭagordon
+edit.batch_edit = Amasa redaktado...
+edit.snap = Kroĉi al pintoj
+edit.snap_mode = Kroĉa reĝimo
+edit.snap_peaks = Pintoj
+edit.snap_zero = Nultransiro
+edit.snap_none = Neniu
+edit.rename = Renomi alinomon
+edit.delete = Forigi alinomon
+edit.duplicate = Duobligi alinomon
+edit.mark_complete = Marki kiel kompleta
+edit.keybindings = Agordi Parametrajn Klavojn...
+
+# ==============================================================================
+# RIGARDO-MENUO
+# ==============================================================================
+
+view.minimap = Montri minimapon
+view.spectrogram = Montri spektrogramon
+view.spectrogram_config = Agordi Spektrogramon...
+view.gpu = GPU-Akcelo (>Kanario)
+view.gpu_info = GPU-Informo...
+view.normalize = Normaligi ondoformon
+view.persistent_zoom = Persistema zomo
+view.reset_layout = Restarigi panelaranĝon
+view.zoom_in = Zomi +
+view.zoom_out = Zomi -
+view.zoom_reset = Restarigi zomon
+view.cycle_theme = Ŝanĝi ondan temon
+
+# ==============================================================================
+# ONDAJ TEMOJ (KOLOROJ)
+# ==============================================================================
+
+theme.blue = Milda bluo
+theme.green = Cifereca verdo
+theme.mono = Blanka sur nigro
+theme.orange = Ambra oranĝo
+theme.purple = Synthwave purpuro
+theme.cyan = Terminala cejano
+theme.pink = Neona rozo
+theme.gold = Klasika oro
+theme.red = Intensa ruĝo
+
+# ==============================================================================
+# LUDADO-MENUO
+# ==============================================================================
+
+playback.segment = Ludi segmenton (Spaco)
+playback.full = Ludi tutan aŭdion (Shift+Spaco)
+playback.sector = Ludi sektoron per klako
+playback.sector_tooltip = Aktivigite, klako sur ondo ludas malgrandan sektoron (~200ms)
+playback.device = Sonilo...
+playback.device_tooltip = Elekti eligan sonilon
+playback.auto_save = Aŭtomata konservo
+
+# ==============================================================================
+# REDAKTAJ REĜIMOJ
+# ==============================================================================
+
+mode.srp = SRP - Relativa Kroĉo al Preutterance
+mode.srp_tooltip = Aktivigite, movi preutterance movas offset kaj cutoff proporcie.
+mode.srna = SRnA - Relativa Kroĉo al Nenio
+mode.srna_tooltip = Aktivigite, ĉiu parametro povas esti movita sendepende.
+
+# ==============================================================================
+# ANTAŬAGORDOJ
+# ==============================================================================
+
+preset.config = Agordi Antaŭagordojn...
+preset.cv = CV
+preset.vcv = VCV
+preset.vv = VV
+preset.vc = VC
+preset.minus_v = -V
+
+# ==============================================================================
+# KODADOJ
+# ==============================================================================
+
+encoding.auto = Aŭtomata (detekti)
+encoding.auto_tooltip = Aŭtomate detektas dosieran kodadon
+encoding.utf8 = UTF-8 (Moderna OpenUTAU)
+encoding.utf8_tooltip = OpenUTAU-normo - subtenas ĉiujn lingvojn
+encoding.utf8_bom = UTF-8 BOM (Kongrua kun OpenUTAU)
+encoding.utf8_bom_tooltip = UTF-8 kun BOM - pli bona kongrueco kun Windows
+encoding.cp932 = Shift-JIS / CP932 (Japana UTAU)
+encoding.cp932_tooltip = Klasika japana UTAU-normo
+encoding.eucjp = EUC-JP (Unix/Linux UTAU)
+encoding.eucjp_tooltip = Alternativa japana kodado
+encoding.ansi = ANSI / Windows-1252 (Okcidenta)
+encoding.ansi_tooltip = Windows-normo por okcidentaj lingvoj
+encoding.latin1 = Latin-1 / ISO-8859-1 (Eŭropa)
+encoding.latin1_tooltip = Kodado por okcidenteŭropaj lingvoj
+encoding.gbk = GBK / CP936 (Simpligita ĉina)
+encoding.gbk_tooltip = Kodado por simpligitaj ĉinaj voĉbankoj
+encoding.euckr = EUC-KR / CP949 (Korea)
+encoding.euckr_tooltip = Kodado por koreaj voĉbankoj
+
+# ==============================================================================
+# KROMAĴOJ
+# ==============================================================================
+
+plugin.manage = Administri Kromaĵojn...
+plugin.auto_oto = Semanto - Aŭtomata OTO...
+plugin.auto_oto_tooltip = Aŭtomate detektas offset kaj cutoff
+plugin.vv_detector = Maturiĝo - VV-Detektilo...
+plugin.vv_detector_tooltip = Detektas vokalajn transirojn en VV-alinomoj
+plugin.pitch = Rikolto - Tona Analizo...
+plugin.pitch_tooltip = Montras la fundamentan frekvencon de aŭdio
+plugin.mic_tuner = Fruktoĝardeno - Akordigilo...
+plugin.mic_tuner_tooltip = Realtempan akordigilo per mikrofono
+plugin.rename = Grefado - Amasa Renomado...
+plugin.rename_tooltip = Renomas plurajn alinomojn samtempe
+plugin.sort = Selektado - Ordigi Alinomojn...
+plugin.sort_tooltip = Ordigas alinomojn laŭ diversaj kriterioj
+plugin.romaji = Polenado - Romaĝo ↔ Hiragano...
+plugin.romaji_tooltip = Konvertas alinomojn inter Romaĝo kaj Hiragano/Katakano
+plugin.duplicates = Pritondi - Duplikat-Detektilo...
+plugin.duplicates_tooltip = Trovas duplikatajn alinomojn
+plugin.consistency = Inspektoro - Konsistec-Kontrolilo...
+plugin.consistency_tooltip = Validigas parametrojn kaj detektas problemojn
+
+# ==============================================================================
+# TABELAJ KOLUMNOJ
+# ==============================================================================
+
+column.favorite = Favorato
+column.filename = Dosiero
+column.alias = Alinomo
+column.offset = Offset
+column.overlap = Overlap
+column.preutter = Preutterance
+column.consonant = Konsonanto
+column.cutoff = Cutoff
+
+# ==============================================================================
+# STATMESAĜOJ
+# ==============================================================================
+
+status.loaded = Ŝargita: {filename}
+status.saved = Sukcese konservita!
+status.saved_at = Konservita: {time}
+status.copied = Kopiitaj {count} ĉeloj
+status.pasted = Algluitaj al {count} ĉeloj
+status.oto_created = oto.ini kreita kun {count} enskriboj
+status.project_loaded = Projekto ŝargita: {name}
+status.project_saved = Projekto konservita: {name}
+status.preset_applied = Antaŭagordo {preset} aplikita al {count} alinomo(j)
+status.sector_on = Sektora reĝimo ŝaltita: klaku por ludi ~200ms
+status.sector_off = Sektora reĝimo malŝaltita
+status.normalize_on = Normaligo ŝaltita
+status.normalize_off = Normaligo malŝaltita
+status.sounddevice_unavailable = sounddevice nedisponebla
+status.clipboard_empty = Tondujo malplena
+status.language_changed = Lingvo ŝanĝita al {lang}
+status.lines_completed = {done}/{total} finitaj
+status.ready = Preta
+status.loading = Ŝargante...
+status.saving = Konservante...
+
+# ==============================================================================
+# DIALOGOJ KAJ MESAĜOJ
+# ==============================================================================
+
+dialog.error = Eraro
+dialog.confirm = Konfirmi
+dialog.warning = Averto
+dialog.create_oto_title = Krei oto.ini
+dialog.create_oto_text = Neniu oto.ini trovita en ĉi tiu dosierujo.\n\nTrovitaj {count} .wav-dosieroj.\n\nĈu krei oto.ini kun defaŭltaj enskriboj?
+dialog.no_oto_wav = Neniu oto.ini aŭ .wav-dosieroj trovitaj en ĉi tiu dosierujo.
+dialog.oto_create_error = Ne eblis krei oto.ini:\n{error}
+dialog.reload_title = Reŝargi
+dialog.reload_text = Estas nekonservitaj ŝanĝoj. Ĉu tamen reŝargi?
+dialog.no_oto_loaded = Neniu oto.ini ŝargita.
+dialog.oto_not_found = La oto.ini-dosiero ne trovita:\n{path}
+dialog.project_not_found = Projekto ne trovita:\n{path}
+dialog.delete_title = Konfirmi Forigon
+dialog.delete_text = Ĉu vi vere volas forigi la alinomon en linio {row}?
+dialog.rename_title = Renomi Alinomon
+dialog.rename_text = Nova nomo:
+dialog.batch_edit_title = Amasa Redaktado
+dialog.batch_edit_none = Elektu almenaŭ unu alinomon.
+dialog.load_error = Ŝarga eraro
+dialog.save_error = Konserva eraro
+dialog.project_load_error = Projekta ŝarga eraro
+dialog.project_save_error = Projekta konserva eraro
+
+# ==============================================================================
+# STATBRETO / PROGRESO
+# ==============================================================================
+
+progress.aliases = Alinomo {current}/{total}
+progress.completed = {count} finitaj
+progress.session = Vi agordas de {time}
+
+# ==============================================================================
+# KOMENCA EKRANO
+# ==============================================================================
+
+splash.loading = Ŝargante...
+splash.init_audio = Pravigante aŭdion...
+splash.init_gpu = Pravigante GPU-on...
+splash.init_plugins = Ŝargante kromaĵojn...
+splash.init_ui = Preparante interfacon...
+
+# ==============================================================================
+# ĈEFA FENESTRO
+# ==============================================================================
+
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+
+# ==============================================================================
+# KLAVKOMBINOJ
+# ==============================================================================
+
+key.offset = Offset (defaŭlte Q)
+key.overlap = Overlap (defaŭlte W)
+key.preutter = Preutterance (defaŭlte E)
+key.consonant = Konsonanto (defaŭlte R)
+key.cutoff = Cutoff (defaŭlte T)
+
+# ==============================================================================
+# PRI / HELPO
+# ==============================================================================
+
+help.about = Pri Copaiba Lexikon
+help.version = Versio
+help.author = Evoluigita de
+help.website = Retejo
+
+# ==============================================================================
+# GPU
+# ==============================================================================
+
+gpu.enabled = GPU aktivigita: {name} ({memory}) [{backend}]
+gpu.disabled = GPU malaktivigita
+gpu.not_available = GPU nedisponebla
+gpu.info_title = GPU-Informo
+
+# ==============================================================================
+# MESAĜOJ KAJ ERAROJ
+# ==============================================================================
+
+msg.backup_error_title = Rezervkopia Eraro
+msg.backup_error = Ne eblis krei rezervkopion:\n{error}
+msg.load_error_title = Ŝarga Eraro
+msg.load_error = Eraro dum ŝargado de dosiero:\n{error}
+msg.no_oto_found = Neniu oto.ini trovita en ĉi tiu dosierujo.
+msg.file_not_found = Dosiero ne trovita:\n{file}
+msg.save_error_title = Konserva Eraro
+msg.save_error = Eraro dum konservado:\n{error}
+msg.saved = Konservita: {file}
+msg.saved_time = Vi agordas de {time}
+msg.gpu_info_title = GPU-Informo
+msg.gpu_activate_failed = Malsukcesis aktivigi GPU-on
+msg.plugin_not_found_title = Eraro
+msg.plugin_not_found = Kromaĵo '{name}' ne trovita.
+msg.plugin_unavailable_title = Kromaĵoj Nedisponeblaj
+msg.plugin_unavailable = Ne eblis ŝargi kromaĵon '{name}'.\nKontrolu ĉu dosierujo 'plugins' ekzistas.\n\nEraro: {error}
+msg.plugin_error_title = Kromaĵa Eraro
+msg.plugin_error = Eraro okazis dum malfermo de kromaĵo:\n{error}
+msg.batch_edit_title = Amasa Redaktado
+msg.batch_select_alias = Elektu almenaŭ unu alinomon.
+msg.confirm_exit_title = Konfirmi Eliron
+msg.confirm_exit = Konservi ŝanĝojn antaŭ eliro?
+msg.confirm_discard = Estas nekonservitaj ŝanĝoj. Ĉu forĵeti ilin?
+msg.confirm_delete_title = Konfirmi Forigon
+msg.confirm_delete = Ĉu vi vere volas forigi la elektitajn erojn?
+msg.create_oto_title = Krei oto.ini
+msg.create_oto = Neniu oto.ini trovita.\nKrei novan bazitan sur WAV-dosieroj?
+msg.oto_created = oto.ini kreita kun {count} enskriboj.
+
+# ==============================================================================
+# LINGVA NOMO
+# ==============================================================================
+
+language.name = Esperanto
+language.code = eo

@@ -1,0 +1,169 @@
+# spectrogram_config_widget.py
+
+from PySide6.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QGroupBox,
+    QLabel, QSlider, QComboBox, QCheckBox, QPushButton,
+    QSpinBox, QFormLayout
+)
+from PySide6.QtCore import Qt, Signal
+
+
+class SpectrogramConfigWidget(QWidget):
+    """Widget de configuração do espectrograma"""
+
+    # Sinais para notificar mudanças
+    gammaChanged = Signal(float)
+    contrastChanged = Signal(float)
+    colormapChanged = Signal(str)
+    freqRangeChanged = Signal(int, int)
+    qualityChanged = Signal(str)
+    gpuChanged = Signal(bool)
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._init_ui()
+
+    def _init_ui(self):
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(5, 5, 5, 5)
+        layout.setSpacing(10)
+
+        # Grupo: Aparência
+        appearance_group = QGroupBox("Aparência")
+        appearance_layout = QFormLayout(appearance_group)
+
+        # Gamma (Intensidade)
+        self._gamma_slider = QSlider(Qt.Horizontal)
+        self._gamma_slider.setRange(10, 200)  # 0.1 a 2.0
+        self._gamma_slider.setValue(50)  # 0.5 padrão
+        self._gamma_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self._gamma_slider.setTickInterval(10)
+        self._gamma_label = QLabel("0.50")
+        gamma_layout = QHBoxLayout()
+        gamma_layout.addWidget(self._gamma_slider)
+        gamma_layout.addWidget(self._gamma_label)
+        appearance_layout.addRow("Intensidade (Gamma):", gamma_layout)
+        self._gamma_slider.valueChanged.connect(self._on_gamma_changed)
+
+        # Contraste
+        self._contrast_slider = QSlider(Qt.Horizontal)
+        self._contrast_slider.setRange(50, 200)  # 0.5 a 2.0
+        self._contrast_slider.setValue(100)  # 1.0 padrão
+        self._contrast_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
+        self._contrast_slider.setTickInterval(10)
+        self._contrast_label = QLabel("1.00")
+        contrast_layout = QHBoxLayout()
+        contrast_layout.addWidget(self._contrast_slider)
+        contrast_layout.addWidget(self._contrast_label)
+        appearance_layout.addRow("Contraste:", contrast_layout)
+        self._contrast_slider.valueChanged.connect(self._on_contrast_changed)
+
+        # Colormap
+        self._colormap_combo = QComboBox()
+        self._colormap_combo.addItems(['viridis', 'magma', 'hot', 'cool', 'gray'])
+        self._colormap_combo.setCurrentText('viridis')
+        appearance_layout.addRow("Esquema de Cores:", self._colormap_combo)
+        self._colormap_combo.currentTextChanged.connect(self.colormapChanged.emit)
+
+        layout.addWidget(appearance_group)
+
+        # Grupo: Frequência
+        freq_group = QGroupBox("Range de Frequência")
+        freq_layout = QFormLayout(freq_group)
+
+        self._min_freq_spin = QSpinBox()
+        self._min_freq_spin.setRange(0, 10000)
+        self._min_freq_spin.setValue(0)
+        self._min_freq_spin.setSuffix(" Hz")
+        self._min_freq_spin.setSingleStep(100)
+        freq_layout.addRow("Mínima:", self._min_freq_spin)
+
+        self._max_freq_spin = QSpinBox()
+        self._max_freq_spin.setRange(1000, 20000)
+        self._max_freq_spin.setValue(4000)
+        self._max_freq_spin.setSuffix(" Hz")
+        self._max_freq_spin.setSingleStep(500)
+        freq_layout.addRow("Máxima:", self._max_freq_spin)
+
+        self._min_freq_spin.valueChanged.connect(self._on_freq_changed)
+        self._max_freq_spin.valueChanged.connect(self._on_freq_changed)
+
+        # Presets de frequência
+        freq_preset_layout = QHBoxLayout()
+        btn_voice = QPushButton("Voz (80-4000)")
+        btn_voice.clicked.connect(lambda: self._set_freq_preset(80, 4000))
+        btn_full = QPushButton("Completo (0-8000)")
+        btn_full.clicked.connect(lambda: self._set_freq_preset(0, 8000))
+        btn_high = QPushButton("Alto (2000-8000)")
+        btn_high.clicked.connect(lambda: self._set_freq_preset(2000, 8000))
+        freq_preset_layout.addWidget(btn_voice)
+        freq_preset_layout.addWidget(btn_full)
+        freq_preset_layout.addWidget(btn_high)
+        freq_layout.addRow("Presets:", freq_preset_layout)
+
+        layout.addWidget(freq_group)
+
+        # Grupo: Performance
+        perf_group = QGroupBox("Performance")
+        perf_layout = QFormLayout(perf_group)
+
+        # Qualidade
+        self._quality_combo = QComboBox()
+        self._quality_combo.addItems(['Baixa (rápida)', 'Média', 'Alta (lenta)'])
+        self._quality_combo.setCurrentIndex(1)
+        self._quality_combo.currentIndexChanged.connect(self._on_quality_changed)
+        perf_layout.addRow("Qualidade:", self._quality_combo)
+
+        # GPU
+        self._gpu_checkbox = QCheckBox("Usar aceleração GPU")
+        self._gpu_checkbox.setToolTip("Requer GPU compatível e backend ativado")
+        self._gpu_checkbox.toggled.connect(self.gpuChanged.emit)
+        perf_layout.addRow("", self._gpu_checkbox)
+
+        layout.addWidget(perf_group)
+
+        # Botão reset
+        reset_btn = QPushButton("🔄 Resetar para Padrão")
+        reset_btn.clicked.connect(self._reset_to_default)
+        layout.addWidget(reset_btn)
+
+        layout.addStretch()
+
+    def _on_gamma_changed(self, value):
+        gamma = value / 100.0
+        self._gamma_label.setText(f"{gamma:.2f}")
+        self.gammaChanged.emit(gamma)
+
+    def _on_contrast_changed(self, value):
+        contrast = value / 100.0
+        self._contrast_label.setText(f"{contrast:.2f}")
+        self.contrastChanged.emit(contrast)
+
+    def _on_freq_changed(self):
+        min_freq = self._min_freq_spin.value()
+        max_freq = self._max_freq_spin.value()
+        if min_freq < max_freq:
+            self.freqRangeChanged.emit(min_freq, max_freq)
+
+    def _set_freq_preset(self, min_freq, max_freq):
+        self._min_freq_spin.setValue(min_freq)
+        self._max_freq_spin.setValue(max_freq)
+
+    def _on_quality_changed(self, index):
+        quality_map = ['low', 'medium', 'high']
+        self.qualityChanged.emit(quality_map[index])
+
+    def _reset_to_default(self):
+        self._gamma_slider.setValue(50)
+        self._contrast_slider.setValue(100)
+        self._colormap_combo.setCurrentText('viridis')
+        self._min_freq_spin.setValue(0)
+        self._max_freq_spin.setValue(4000)
+        self._quality_combo.setCurrentIndex(1)
+        self._gpu_checkbox.setChecked(False)
+
+    def set_gpu_available(self, available: bool):
+        """Habilita/desabilita opção de GPU"""
+        self._gpu_checkbox.setEnabled(available)
+        if not available:
+            self._gpu_checkbox.setToolTip("GPU não disponível - instale backend GPU")

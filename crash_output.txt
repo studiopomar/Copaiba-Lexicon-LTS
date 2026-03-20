@@ -1,0 +1,1 @@
+﻿[INFO] Nenhuma GPU compatÝvel encontrada, usando CPU como fallback

@@ -1,0 +1,15 @@
+142 INFO: PyInstaller: 6.19.0, contrib hooks: 2026.1
+142 INFO: Python: 3.10.11
+160 INFO: Platform: Windows-10-10.0.26200-SP0
+160 INFO: Python environment: C:\Users\Administrator\AppData\Local\Programs\Python\Python310
+162 INFO: Removing temporary files and cleaning cache in C:\Users\Administrator\AppData\Local\pyinstaller
+165 INFO: Module search paths (PYTHONPATH):
+['H:\\copaiba-fonte',
+ 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\python310.zip',
+ 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\DLLs',
+ 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\lib',
+ 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310',
+ 'C:\\Users\\Administrator\\AppData\\Local\\Programs\\Python\\Python310\\lib\\site-packages',
+ 'H:\\copaiba-fonte']
+612 INFO: Appending 'datas' from .spec
+ERROR: Unable to find 'H:\\copaiba-fonte\\site' when adding binary and data files.

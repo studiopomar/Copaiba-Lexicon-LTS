@@ -1,0 +1,9 @@
+# requirements-build.txt
+# Versões específicas para build PyInstaller compatível com Ubuntu 22.04
+
+PySide6==6.5.3
+numpy==1.26.4
+scipy==1.12.0
+pyqtgraph==0.13.7
+PyOpenGL==3.1.7
+sounddevice==0.4.7
