@@ -1,4 +1,4 @@
-name: Bidu
+name: Notificações do Bidu
 
 on: [push]
 
@@ -6,14 +6,43 @@ jobs:
   notificar:
     runs-on: ubuntu-latest
     steps:
-      - name: Enviar aviso de commit para o Discord
+      - name: Processar arquivos e avisar o Discord
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-          curl -H "Content-Type: application/json" \
-          -d '{
-            "embeds": [{
-              "title": "📦 Novo push em ${{ github.repository }}",
-              "description": "Autoria de **${{ github.actor }}**.\n[Comparar alterações no GitHub](${{ github.event.compare }})",
-              "color": 3447003
-            }]
-          }' \
-          ${{ secrets.DISCORD_WEBHOOK_URL }}
+          # Extrai a lista de arquivos únicos modificados, adicionados ou removidos deste push
+          FILES=$(jq -r '.commits[] | .modified[], .added[], .removed[]' "$GITHUB_EVENT_PATH" | sort -u | grep -v '^$')
+          
+          # Verifica e formata a lista de arquivos
+          if [ -z "$FILES" ]; then
+            FILE_TEXT="*Nenhum arquivo detalhado.*"
+          else
+            TOTAL=$(echo "$FILES" | wc -l)
+            
+            # Pega apenas os 5 primeiros e coloca em formato de código e lista pro Discord
+            FILE_TEXT=$(echo "$FILES" | head -n 5 | sed 's/^/- `/' | sed 's/$/`/')
+            
+            # Se tiver mais de 5 arquivos, adiciona o aviso no final
+            if [ "$TOTAL" -gt 5 ]; then
+              REMAINING=$((TOTAL - 5))
+              FILE_TEXT="$FILE_TEXT\n*...e mais $REMAINING arquivo(s)*"
+            fi
+          fi
+          
+          # Constrói o formato da mensagem de forma segura
+          JSON_PAYLOAD=$(jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg actor "${{ github.actor }}" \
+            --arg url "${{ github.event.compare }}" \
+            --arg files "$FILE_TEXT" \
+            '{
+              embeds: [{
+                title: "📦 Novo push em \($repo)",
+                description: "Autoria de **\($actor)**.\n\n**Arquivos alterados:**\n\($files)\n\n[Comparar alterações no GitHub](\($url))",
+                color: 3447003
+              }]
+            }' \
+          )
+          
+          # Dispara a mensagem para o Bidu
+          curl -H "Content-Type: application/json" -d "$JSON_PAYLOAD" $DISCORD_WEBHOOK
