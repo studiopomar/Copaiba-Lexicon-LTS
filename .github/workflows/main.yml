@@ -1,0 +1,19 @@
+name: Bidu
+
+on: [push]
+
+jobs:
+  notificar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enviar aviso de commit para o Discord
+        run: |
+          curl -H "Content-Type: application/json" \
+          -d '{
+            "embeds": [{
+              "title": "📦 Novo push em ${{ github.repository }}",
+              "description": "Autoria de **${{ github.actor }}**.\n[Comparar alterações no GitHub](${{ github.event.compare }})",
+              "color": 3447003
+            }]
+          }' \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
