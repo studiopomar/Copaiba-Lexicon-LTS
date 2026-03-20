@@ -23,49 +23,51 @@ ROMAJI_TO_HIRAGANA = {
     'a': 'あ', 'i': 'い', 'u': 'う', 'e': 'え', 'o': 'お',
     # K
     'ka': 'か', 'ki': 'き', 'ku': 'く', 'ke': 'け', 'ko': 'こ',
-    'kya': 'きゃ', 'kyu': 'きゅ', 'kyo': 'きょ',
+    'kya': 'きゃ', 'kyu': 'きゅ', 'kyo': 'きょ', 'kye': 'きぇ',
     # G
     'ga': 'が', 'gi': 'ぎ', 'gu': 'ぐ', 'ge': 'げ', 'go': 'ご',
-    'gya': 'ぎゃ', 'gyu': 'ぎゅ', 'gyo': 'ぎょ',
+    'gya': 'ぎゃ', 'gyu': 'ぎゅ', 'gyo': 'ぎょ', 'gye': 'gyえ',
     # V
     'va': 'ヴァ', 'vi': 'ヴィ', 'vu': 'ヴ', 've': 'ヴェ', 'vo': 'ヴォ',
     # S
     'sa': 'さ', 'si': 'し', 'shi': 'し', 'su': 'す', 'se': 'せ', 'so': 'そ',
-    'sha': 'しゃ', 'shu': 'しゅ', 'sho': 'しょ',
+    'sha': 'しゃ', 'shu': 'しゅ', 'sho': 'しょ', 'she': 'sへ',
     'sya': 'しゃ', 'syu': 'しゅ', 'syo': 'しょ',
     # Z
     'za': 'ざ', 'zi': 'ずぃ', 'ji': 'じ', 'zu': 'ず', 'ze': 'ぜ', 'zo': 'ぞ',
-    'ja': 'じゃ', 'ju': 'じゅ', 'jo': 'じょ',
+    'ja': 'じゃ', 'ju': 'じゅ', 'jo': 'じょ', 'je': 'jえ',
     'jya': 'じゃ', 'jyu': 'じゅ', 'jyo': 'じょ',
     'zya': 'ずゃ', 'zyu': 'ずゅ', 'zyo': 'ずょ',
     # T
     'ta': 'た', 'ti': 'てぃ', 'chi': 'ち', 'tu': 'とぅ', 'tsu': 'つ', 'te': 'て', 'to': 'と',
-    'cha': 'ちゃ', 'chu': 'ちゅ', 'cho': 'ちょ',
+    'cha': 'ちゃ', 'chu': 'ちゅ', 'cho': 'ちょ', 'che': 'ちぇ',
+    'tsa': 'つぁ', 'tsi': 'つぃ', 'tse': 'つぇ', 'tso': 'つぉ',
     'tya': 'てゃ', 'tyu': 'てゅ', 'tyo': 'てょ',  # te + small ya/yu/yo
     # D
     'da': 'だ', 'di': 'でぃ', 'du': 'どぅ', 'de': 'で', 'do': 'ど',
     'dya': 'でゃ', 'dyu': 'でゅ', 'dyo': 'でょ',  # de + small ya/yu/yo
     # N
     'na': 'な', 'ni': 'に', 'nu': 'ぬ', 'ne': 'ね', 'no': 'の',
-    'nya': 'にゃ', 'nyu': 'にゅ', 'nyo': 'にょ',
+    'nya': 'にゃ', 'nyu': 'にゅ', 'nyo': 'にょ', 'nye': 'にぇ',
     'n': 'ん', 'nn': 'ん',
     # H
     'ha': 'は', 'hi': 'ひ', 'hu': 'ほぅ', 'fu': 'ふ', 'he': 'へ', 'ho': 'ほ', 
-    'hya': 'ひゃ', 'hyu': 'ひゅ', 'hyo': 'ひょ',
+    'hya': 'ひゃ', 'hyu': 'ひゅ', 'hyo': 'ひょ', 'hye': 'ひぇ',
+    'fa': 'fあ', 'fi': 'ふぃ', 'fe': 'fえ', 'fo': 'fお',
     # B
     'ba': 'ば', 'bi': 'び', 'bu': 'ぶ', 'be': 'べ', 'bo': 'ぼ',
-    'bya': 'びゃ', 'byu': 'びゅ', 'byo': 'びょ',
+    'bya': 'びゃ', 'byu': 'びゅ', 'byo': 'びょ', 'bye': 'びぇ',
     # P
     'pa': 'ぱ', 'pi': 'ぴ', 'pu': 'ぷ', 'pe': 'ぺ', 'po': 'ぽ',
-    'pya': 'ぴゃ', 'pyu': 'ぴゅ', 'pyo': 'ぴょ',
+    'pya': 'ぴゃ', 'pyu': 'ぴゅ', 'pyo': 'ぴょ', 'pye': 'ぴぇ',
     # M
-    'ma': 'み', 'mi': 'み', 'mu': 'む', 'me': 'め', 'mo': 'も',
-    'mya': 'みゃ', 'myu': 'みゅ', 'myo': 'みょ',
+    'ma': 'ま', 'mi': 'み', 'mu': 'む', 'me': 'め', 'mo': 'も',
+    'mya': 'みゃ', 'myu': 'みゅ', 'myo': 'みょ', 'mye': 'みぇ',
     # Y
-    'ya': 'や', 'yu': 'ゆ', 'yo': 'よ',
+    'ya': 'や', 'yu': 'ゆ', 'yo': 'よ', 'ye': 'yえ',
     # R
     'ra': 'ら', 'ri': 'り', 'ru': 'る', 're': 'れ', 'ro': 'ろ',
-    'rya': 'りゃ', 'ryu': 'りゅ', 'ryo': 'りょ',
+    'rya': 'りゃ', 'ryu': 'りゅ', 'ryo': 'りょ', 'rye': 'りぇ',
     # W
     'wa': 'わ', 'wi': 'ゐ', 'we': 'うぇ', 'wo': 'を',
     # Pequenos
@@ -81,18 +83,20 @@ ROMAJI_TO_HIRAGANA = {
     'ma': 'ま',
 }
 
-# Correção do 'ma'
-ROMAJI_TO_HIRAGANA['ma'] = 'ま'
-
-# Criar tabela reversa
+# Criar tabela reversa (Hiragana -> Romaji)
 HIRAGANA_TO_ROMAJI = {}
+
+# Lista de preferências (Hepburn) para quando houver múltiplos romajis para o mesmo hiragana
+HEPBURN_PREFERENCE = [
+    'shi', 'chi', 'tsu', 'fu', 'ji', 
+    'sha', 'shu', 'sho', 
+    'cha', 'chu', 'cho', 
+    'ja', 'ju', 'jo'
+]
+
 for romaji, hiragana in ROMAJI_TO_HIRAGANA.items():
-    if hiragana not in HIRAGANA_TO_ROMAJI:
-        # Preferir versões Hepburn
-        if romaji in ['shi', 'chi', 'tsu', 'fu', 'ji', 'sha', 'shu', 'sho', 'cha', 'chu', 'cho', 'ja', 'ju', 'jo']:
-            HIRAGANA_TO_ROMAJI[hiragana] = romaji
-        elif hiragana not in HIRAGANA_TO_ROMAJI:
-            HIRAGANA_TO_ROMAJI[hiragana] = romaji
+    if hiragana not in HIRAGANA_TO_ROMAJI or romaji in HEPBURN_PREFERENCE:
+        HIRAGANA_TO_ROMAJI[hiragana] = romaji
 
 # Katakana (deslocamento de 96 do hiragana)
 HIRAGANA_START = ord('ぁ')
