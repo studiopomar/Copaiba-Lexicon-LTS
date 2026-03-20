@@ -1,0 +1,14 @@
+#oto_entry.py
+from __future__ import annotations
+from dataclasses import dataclass
+
+@dataclass
+class OtoEntry:
+
+    filename: str
+    alias: str
+    offset: int
+    consonant: int
+    cutoff: int
+    preutter: int
+    overlap: int

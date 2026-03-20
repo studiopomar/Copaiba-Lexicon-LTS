@@ -1,0 +1,15 @@
+# requirements.txt
+# Compatível com Python 3.10+ (inclui 3.13)
+
+# Core - Obrigatório
+PySide6>=6.5.0
+numpy>=1.24.0,<3.0.0
+pyqtgraph>=0.13.0
+PyOpenGL>=3.1.6
+sounddevice>=0.4.6
+scipy>=1.10.0
+librosa>=0.10.0  # Nova dependência para espectrograma
+matplotlib>=3.7.0  # Para renderização de espectrograma
+
+# Opcional - GPU (instalar manualmente se quiser aceleração GPU)
+# pyopencl>=2023.1

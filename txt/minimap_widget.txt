@@ -1,0 +1,456 @@
+# minimap_widget.py
+
+from PySide6.QtWidgets import QWidget, QVBoxLayout
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QColor, QCursor
+import pyqtgraph as pg
+import numpy as np
+import warnings
+
+
+class MiniMapWidget(QWidget):
+    """Widget para mostrar mini-mapa da waveform com navegação interativa"""
+
+    navigationRequested = Signal(float, float)
+
+    # Constantes para limites seguros
+    MIN_RANGE = 0.001  # Range mínimo em segundos
+    MAX_RANGE = 3600.0  # Range máximo (1 hora)
+
+    def __init__(self, parent_waveform):
+        super().__init__()
+        self.parent_waveform = parent_waveform
+        self.setFixedHeight(50)
+        self.setMinimumHeight(30)
+        self.setMaximumHeight(100)
+
+        # Cores
+        self.bg_color = QColor(30, 30, 30)
+        self.wave_color = QColor(100, 180, 100)
+        self.region_color = QColor(255, 255, 255, 50)
+        self.region_border_color = QColor(255, 255, 255, 180)
+
+        # Cria o plot do mini-mapa
+        self.plot = pg.PlotWidget(self)
+        self.plot.setMenuEnabled(False)
+        self.plot.showGrid(x=False, y=False)
+        self.plot.setMouseEnabled(x=False, y=False)
+        self.plot.setBackground(self.bg_color)
+        self.plot.hideAxis('left')
+        self.plot.hideAxis('bottom')
+        self.plot.setDownsampling(auto=True, mode='peak')
+        self.plot.setClipToView(True)
+
+        # Região visível (retângulo)
+        self.view_region = pg.LinearRegionItem(
+            values=[0, 1],
+            orientation='vertical',
+            brush=pg.mkBrush(self.region_color),
+            pen=pg.mkPen(self.region_border_color, width=2),
+            movable=True,
+            swapMode='none'
+        )
+        self.view_region.setZValue(10)
+        self.plot.addItem(self.view_region)
+
+        # Conecta sinais
+        self.view_region.sigRegionChanged.connect(self._on_region_dragged)
+        self.view_region.sigRegionChangeFinished.connect(self._on_region_drag_finished)
+
+        # Linha central (compatibilidade)
+        self.view_line = pg.InfiniteLine(
+            angle=90, movable=False,
+            pen=pg.mkPen('#ffffff', width=1, style=Qt.DashLine)
+        )
+        self.view_line.setZValue(11)
+        self.plot.addItem(self.view_line)
+        self.view_line.hide()
+
+        # Layout
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
+        layout.addWidget(self.plot)
+
+        # Referências
+        self.curve = None
+        self.marker_lines = {}
+
+        # Estados
+        self._updating_from_parent = False
+        self._audio_duration = 0.0
+        self._is_initialized = False
+
+        self.setCursor(Qt.PointingHandCursor)
+        self.plot.scene().sigMouseClicked.connect(self._on_plot_clicked)
+
+    def _safe_value(self, value, default=0.0):
+        """Garante que o valor é um número válido e dentro dos limites"""
+        if value is None:
+            return default
+        try:
+            val = float(value)
+            if np.isnan(val) or np.isinf(val):
+                return default
+            # Limita ao range seguro
+            return max(-self.MAX_RANGE, min(val, self.MAX_RANGE))
+        except (ValueError, TypeError):
+            return default
+
+    def _safe_set_x_range(self, x_min, x_max):
+        """Define X range com validação de valores"""
+        x_min = self._safe_value(x_min, 0.0)
+        x_max = self._safe_value(x_max, 1.0)
+
+        # Garante range mínimo
+        if x_max - x_min < self.MIN_RANGE:
+            x_max = x_min + self.MIN_RANGE
+
+        # Garante que não excede limites
+        if x_max > self.MAX_RANGE:
+            x_max = self.MAX_RANGE
+            x_min = max(0, x_max - self.MIN_RANGE)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.plot.setXRange(x_min, x_max, padding=0)
+            except Exception:
+                pass
+
+    def _safe_set_y_range(self, y_min, y_max):
+        """Define Y range com validação de valores"""
+        y_min = self._safe_value(y_min, -1.0)
+        y_max = self._safe_value(y_max, 1.0)
+
+        # Garante range mínimo
+        if y_max - y_min < 0.01:
+            y_min = -1.0
+            y_max = 1.0
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.plot.setYRange(y_min, y_max, padding=0)
+            except Exception:
+                pass
+
+    def _on_plot_clicked(self, event):
+        """Navega para a posição clicada"""
+        if self._updating_from_parent or not self._is_initialized:
+            return
+
+        if event.button() != Qt.LeftButton:
+            return
+
+        pos = event.scenePos()
+        vb = self.plot.getViewBox()
+        if vb is None:
+            return
+
+        mouse_point = vb.mapSceneToView(pos)
+        clicked_time = self._safe_value(mouse_point.x(), 0.0)
+
+        current_start, current_end = self.view_region.getRegion()
+        current_start = self._safe_value(current_start, 0.0)
+        current_end = self._safe_value(current_end, 1.0)
+
+        if current_start <= clicked_time <= current_end:
+            return
+
+        region_width = current_end - current_start
+        if region_width < self.MIN_RANGE:
+            region_width = self.MIN_RANGE
+
+        new_start = clicked_time - region_width / 2
+        new_end = clicked_time + region_width / 2
+
+        if self._audio_duration > 0:
+            if new_start < 0:
+                new_start = 0
+                new_end = min(region_width, self._audio_duration)
+            if new_end > self._audio_duration:
+                new_end = self._audio_duration
+                new_start = max(0, self._audio_duration - region_width)
+
+        self._set_region_without_callback(new_start, new_end)
+        self._notify_navigation(new_start, new_end)
+
+    def _on_region_dragged(self):
+        """Chamado durante arraste da região"""
+        if self._updating_from_parent or not self._is_initialized:
+            return
+
+        start, end = self.view_region.getRegion()
+        start = self._safe_value(start, 0.0)
+        end = self._safe_value(end, self._audio_duration or 1.0)
+
+        if self._audio_duration > 0:
+            if start < 0:
+                offset = -start
+                start = 0
+                end = min(end + offset, self._audio_duration)
+            if end > self._audio_duration:
+                offset = end - self._audio_duration
+                end = self._audio_duration
+                start = max(0, start - offset)
+
+        self._notify_navigation(start, end)
+
+    def _on_region_drag_finished(self):
+        """Chamado ao finalizar arraste"""
+        if self._updating_from_parent or not self._is_initialized:
+            return
+
+        start, end = self.view_region.getRegion()
+        start = self._safe_value(start, 0.0)
+        end = self._safe_value(end, self._audio_duration or 1.0)
+        self._notify_navigation(start, end)
+
+    def _notify_navigation(self, start_time, end_time):
+        """Notifica navegação ao parent"""
+        start_time = self._safe_value(start_time, 0.0)
+        end_time = self._safe_value(end_time, 1.0)
+
+        if end_time - start_time < self.MIN_RANGE:
+            end_time = start_time + self.MIN_RANGE
+
+        if self._audio_duration > 0:
+            start_time = max(0, min(start_time, self._audio_duration))
+            end_time = max(start_time + self.MIN_RANGE, min(end_time, self._audio_duration))
+
+        if hasattr(self.parent_waveform, '_set_x_range'):
+            self._updating_from_parent = True
+            try:
+                self.parent_waveform._set_x_range(start_time, end_time)
+            finally:
+                self._updating_from_parent = False
+
+        self.navigationRequested.emit(start_time, end_time)
+
+    def _set_region_without_callback(self, start, end):
+        """Atualiza região sem disparar callbacks"""
+        start = self._safe_value(start, 0.0)
+        end = self._safe_value(end, 1.0)
+
+        if end - start < self.MIN_RANGE:
+            end = start + self.MIN_RANGE
+
+        self._updating_from_parent = True
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", RuntimeWarning)
+                self.view_region.setRegion([start, end])
+        except Exception:
+            pass
+        finally:
+            self._updating_from_parent = False
+
+    def update_minimap(self):
+        """Atualiza o mini-mapa com a waveform completa"""
+        # Verifica se há dados válidos
+        if (self.parent_waveform._wave_times is None or
+                self.parent_waveform._wave_data is None):
+            return
+
+        times = self.parent_waveform._wave_times
+        data = self.parent_waveform._wave_data
+        audio_dur = self.parent_waveform._audio_dur
+
+        # Validação de dados
+        if times is None or data is None:
+            return
+        if len(times) == 0 or len(data) == 0:
+            return
+
+        audio_dur = self._safe_value(audio_dur, 0.0)
+        if audio_dur <= 0:
+            return
+
+        self._audio_duration = audio_dur
+        self._is_initialized = True
+
+        # Remove curva anterior
+        if self.curve is not None:
+            try:
+                self.plot.removeItem(self.curve)
+            except Exception:
+                pass
+            self.curve = None
+
+        # Downsample para performance
+        max_points = 1000
+        if len(times) > max_points:
+            step = max(1, len(times) // max_points)
+            times_ds = times[::step]
+            data_ds = data[::step]
+        else:
+            times_ds = times
+            data_ds = data
+
+        # Limpa NaN e Inf dos dados
+        valid_mask = np.isfinite(data_ds)
+        if not np.all(valid_mask):
+            times_ds = times_ds[valid_mask]
+            data_ds = data_ds[valid_mask]
+
+        if len(times_ds) == 0:
+            return
+
+        # Cria curva
+        self.curve = self.plot.plot(
+            times_ds,
+            data_ds,
+            pen=pg.mkPen(self.wave_color, width=1),
+            antialias=False
+        )
+        self.curve.setZValue(1)
+
+        # Define ranges com segurança
+        self._safe_set_x_range(0, audio_dur)
+
+        # Y range
+        if len(data_ds) > 0:
+            max_amp = np.nanmax(np.abs(data_ds))
+            if np.isfinite(max_amp) and max_amp > 0:
+                self._safe_set_y_range(-max_amp * 1.1, max_amp * 1.1)
+            else:
+                self._safe_set_y_range(-1, 1)
+
+        # Define limites da região
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.view_region.setBounds([0, audio_dur])
+            except Exception:
+                pass
+
+        self._update_visible_region()
+        self._update_markers()
+
+    def _update_visible_region(self):
+        """Atualiza retângulo da região visível"""
+        if not self._is_initialized:
+            return
+
+        try:
+            x1, x2 = self.parent_waveform._current_x_range()
+            x1 = self._safe_value(x1, 0.0)
+            x2 = self._safe_value(x2, self._audio_duration or 1.0)
+        except Exception:
+            x1, x2 = 0.0, self._audio_duration or 1.0
+
+        self._set_region_without_callback(x1, x2)
+
+        center = (x1 + x2) / 2.0
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.view_line.setPos(center)
+            except Exception:
+                pass
+
+    def _update_markers(self):
+        """Atualiza marcadores no mini-mapa"""
+        for line in self.marker_lines.values():
+            try:
+                self.plot.removeItem(line)
+            except Exception:
+                pass
+        self.marker_lines.clear()
+
+        if self.parent_waveform._current_entry is None:
+            return
+
+        try:
+            mapping = self.parent_waveform._get_marker_positions()
+        except (AttributeError, Exception):
+            return
+
+        try:
+            from marker_manager import MarkerManager
+            styles = MarkerManager.DEFAULT_STYLES
+        except ImportError:
+            styles = {
+                "offset": {"color": "#ff5555"},
+                "overlap": {"color": "#55ff55"},
+                "preutter": {"color": "#5555ff"},
+                "consonant": {"color": "#ffff55"},
+                "cutoff": {"color": "#ff55ff"},
+            }
+
+        for name, t_s in mapping.items():
+            t_s = self._safe_value(t_s, 0.0)
+            style = styles.get(name, {"color": "#ffcc00"})
+            color = style.get("color", "#ffcc00")
+
+            line = pg.InfiniteLine(
+                pos=t_s,
+                angle=90,
+                movable=False,
+                pen=pg.mkPen(color, width=1),
+            )
+            line.setZValue(5)
+            self.plot.addItem(line)
+            self.marker_lines[name] = line
+
+    def set_visible_region(self, start_time, end_time):
+        """Define região visível (chamado pelo parent)"""
+        if self._updating_from_parent or not self._is_initialized:
+            return
+
+        start_time = self._safe_value(start_time, 0.0)
+        end_time = self._safe_value(end_time, 1.0)
+
+        self._set_region_without_callback(start_time, end_time)
+
+        center = (start_time + end_time) / 2.0
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                self.view_line.setPos(center)
+            except Exception:
+                pass
+
+    def wheelEvent(self, event):
+        """Zoom com scroll do mouse"""
+        if self._audio_duration <= 0 or not self._is_initialized:
+            event.ignore()
+            return
+
+        delta = event.angleDelta().y()
+        if delta == 0:
+            event.ignore()
+            return
+
+        start, end = self.view_region.getRegion()
+        start = self._safe_value(start, 0.0)
+        end = self._safe_value(end, self._audio_duration)
+
+        center = (start + end) / 2.0
+        current_width = end - start
+
+        if current_width < self.MIN_RANGE:
+            current_width = self.MIN_RANGE
+
+        factor = 0.8 if delta > 0 else 1.25
+        new_width = current_width * factor
+
+        min_width = self._audio_duration / 100.0
+        max_width = self._audio_duration
+        new_width = max(min_width, min(new_width, max_width))
+
+        new_start = center - new_width / 2
+        new_end = center + new_width / 2
+
+        if new_start < 0:
+            new_start = 0
+            new_end = new_width
+        if new_end > self._audio_duration:
+            new_end = self._audio_duration
+            new_start = max(0, self._audio_duration - new_width)
+
+        self._set_region_without_callback(new_start, new_end)
+        self._notify_navigation(new_start, new_end)
+
+        event.accept()

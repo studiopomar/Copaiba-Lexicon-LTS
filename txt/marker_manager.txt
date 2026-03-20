@@ -1,0 +1,489 @@
+# marker_manager.py
+
+from typing import Dict, Optional, Callable
+from dataclasses import replace
+import numpy as np
+import pyqtgraph as pg
+from PySide6.QtCore import Qt
+from copaiba import OtoEntry
+from waveform_plot import WaveformPlotWidget
+
+try:
+    from backend_gpu import get_gpu_backend, gpu_enabled
+
+    GPU_BACKEND_AVAILABLE = True
+except ImportError:
+    GPU_BACKEND_AVAILABLE = False
+
+
+    def gpu_enabled():
+        return False
+
+
+class MarkerManager:
+    """
+    Gerencia os marcadores (offset, overlap, preutter, consonant, cutoff)
+    e regiões preenchidas no WaveformPlotWidget.
+
+    Suporta SRP (Snap Relativo de Preutterance) que move todos os marcadores
+    proporcionalmente quando a preutterance é movida.
+    """
+    MARKER_ORDER = ["offset", "overlap", "preutter", "consonant", "cutoff"]
+    DEFAULT_STYLES = {
+        "offset": {"color": "#4da6ff", "fill": True},
+        "overlap": {"color": "#00ff00", "fill": False},
+        "preutter": {"color": "#ff0000", "fill": False},
+        "consonant": {"color": "#ff69b4", "fill": True},
+        "cutoff": {"color": "#4da6ff", "fill": True},
+    }
+
+    def __init__(self, plot_widget: WaveformPlotWidget):
+        self.plot_widget = plot_widget
+        self._markers_s: Dict[str, float] = {}
+        self._marker_lines: Dict[str, pg.InfiniteLine] = {}
+        self._filled_regions: list[pg.LinearRegionItem] = []
+        self._current_entry: Optional[OtoEntry] = None
+        self._current_row: Optional[int] = None
+        self._edit_callback: Optional[Callable] = None
+        self._dragging_marker: Optional[str] = None
+        self._audio_duration_ms: float = 0.0
+
+        # SRP - Snap Relativo de Preutterance
+        self._srp_enabled: bool = False
+        self._srp_drag_start_entry: Optional[OtoEntry] = None  # Estado inicial ao começar arraste
+
+    def set_edit_callback(self, cb):
+        """Define a função de callback para quando um marcador é editado."""
+        self._edit_callback = cb
+
+    def set_current_entry(self, entry: OtoEntry, row: int):
+        """Define a entrada OtoEntry atual e sua linha correspondente."""
+        self._current_entry = entry
+        self._current_row = row
+
+    def set_srp_enabled(self, enabled: bool):
+        """Ativa/desativa o SRP - Snap Relativo de Preutterance."""
+        self._srp_enabled = enabled
+
+    def is_srp_enabled(self) -> bool:
+        """Retorna se o SRP está ativado."""
+        return self._srp_enabled
+
+    def get_marker_positions(self) -> Dict[str, float]:
+        """Calcula e retorna as posições dos marcadores em segundos."""
+        if self._current_entry is None:
+            return {}
+
+        e = self._current_entry
+        dur_ms = getattr(self, '_audio_duration_ms', 0)
+        if dur_ms <= 0:
+            return {}
+        offset_ms = float(e.offset)
+        return {
+            "offset": max(0.0, min(offset_ms, dur_ms)) / 1000.0,
+            "preutter": max(0.0, min(offset_ms + float(e.preutter), dur_ms)) / 1000.0,
+            "overlap": max(0.0, min(offset_ms + float(e.overlap), dur_ms)) / 1000.0,
+            "consonant": max(0.0, min(offset_ms + float(e.consonant), dur_ms)) / 1000.0,
+            "cutoff": max(0.0, min(offset_ms - float(e.cutoff), dur_ms)) / 1000.0,
+        }
+
+    def update_markers_from_entry(self, skip_marker: Optional[str] = None, audio_duration_s: float = 0.0):
+        """
+        Atualiza a posição e aparência dos marcadores e regiões com base na entrada atual.
+        Requer a duração do áudio em segundos para validação e cálculo de regiões.
+        """
+        if self._current_entry is None or audio_duration_s <= 0:
+            return
+
+        dur_s = max(audio_duration_s, 0.001)
+        mapping = self.get_marker_positions()
+
+        for name, t_s in mapping.items():
+            t_s = max(0.0, min(float(t_s), dur_s))
+            self._markers_s[name] = t_s
+            line = self._marker_lines.get(name)
+
+            style = self.DEFAULT_STYLES.get(name, {"color": "#ffcc00", "fill": False})
+
+            if line is None:
+                line = pg.InfiniteLine(
+                    pos=t_s,
+                    angle=90,
+                    movable=True,
+                    pen=pg.mkPen(style["color"], width=2),
+                )
+                line.sigPositionChanged.connect(
+                    lambda ln, nm=name: self._on_marker_dragging(nm, ln)
+                )
+                line.sigPositionChangeFinished.connect(
+                    lambda ln, nm=name: self._on_marker_drag_finished(nm, ln)
+                )
+                self.plot_widget.addItem(line)
+                self._marker_lines[name] = line
+            elif name != skip_marker:
+                line.blockSignals(True)
+                line.setPos(t_s)
+                line.blockSignals(False)
+
+        self._update_filled_regions(mapping, dur_s)
+
+    def _update_filled_regions(self, mapping: Dict[str, float], dur_s: float):
+        """Atualiza as regiões preenchidas no plot."""
+        for region in self._filled_regions:
+            self.plot_widget.removeItem(region)
+        self._filled_regions.clear()
+
+        styles = self.DEFAULT_STYLES
+
+        # Região antes do Offset
+        if "offset" in mapping and styles["offset"]["fill"]:
+            offset_s = mapping["offset"]
+            if offset_s > 0.001:
+                region = pg.LinearRegionItem(
+                    values=(0.0, offset_s),
+                    orientation='vertical',
+                    brush=pg.mkBrush(styles["offset"]["color"] + "30"),
+                    movable=False
+                )
+                region.lines[0].setPen(pg.mkPen(None))
+                region.lines[1].setPen(pg.mkPen(None))
+                self.plot_widget.addItem(region)
+                self._filled_regions.append(region)
+
+        # Região entre Offset e Consonant
+        if "consonant" in mapping and "offset" in mapping and styles["consonant"]["fill"]:
+            offset_s = mapping["offset"]
+            consonant_s = mapping["consonant"]
+            if consonant_s > offset_s + 0.001:
+                region = pg.LinearRegionItem(
+                    values=(offset_s, consonant_s),
+                    orientation='vertical',
+                    brush=pg.mkBrush(styles["consonant"]["color"] + "25"),
+                    movable=False
+                )
+                region.lines[0].setPen(pg.mkPen(None))
+                region.lines[1].setPen(pg.mkPen(None))
+                self.plot_widget.addItem(region)
+                self._filled_regions.append(region)
+
+        # Região após Cutoff
+        if "cutoff" in mapping and styles["cutoff"]["fill"]:
+            cutoff_s = mapping["cutoff"]
+            if cutoff_s < dur_s - 0.001:
+                region = pg.LinearRegionItem(
+                    values=(cutoff_s, dur_s),
+                    orientation='vertical',
+                    brush=pg.mkBrush(styles["cutoff"]["color"] + "30"),
+                    movable=False
+                )
+                region.lines[0].setPen(pg.mkPen(None))
+                region.lines[1].setPen(pg.mkPen(None))
+                self.plot_widget.addItem(region)
+                self._filled_regions.append(region)
+
+    def _on_marker_dragging(self, name: str, line: pg.InfiniteLine):
+        """Manipula o evento de início do arrasto de um marcador."""
+        if self._current_entry is None:
+            return
+
+        # Salva o estado inicial ao começar o arraste (para SRP)
+        if self._dragging_marker is None:
+            self._srp_drag_start_entry = self._current_entry
+
+        self._dragging_marker = name
+        self._update_entry_from_line(name, line, update_visuals=False)
+
+    def _on_marker_drag_finished(self, name: str, line: pg.InfiniteLine):
+        """Manipula o evento de término do arrasto de um marcador."""
+        if self._current_entry is None or self._current_row is None:
+            return
+        self._dragging_marker = None
+        self._srp_drag_start_entry = None  # Limpa estado inicial
+        self._update_entry_from_line(name, line, update_visuals=True)
+
+    def _update_entry_from_line(self, name: str, line: pg.InfiniteLine, update_visuals: bool):
+        """Atualiza o OtoEntry com base na posição do marcador arrastado."""
+        if self._current_entry is None or self._current_row is None:
+            return
+
+        dur_ms = getattr(self, '_audio_duration_ms', 0)
+        if dur_ms <= 0:
+            return
+
+        t_abs_ms = float(line.value()) * 1000.0
+        t_abs_ms = max(0.0, min(t_abs_ms, dur_ms))
+
+        e = self._current_entry
+        offset_ms = float(e.offset)
+
+        new_entry = None
+
+        # SRP - Snap Relativo de Preutterance
+        if self._srp_enabled and name == "preutter":
+            new_entry = self._apply_srp_movement(t_abs_ms, dur_ms)
+        else:
+            # Comportamento normal
+            if name == "offset":
+                new_entry = replace(e, offset=t_abs_ms)
+            elif name == "preutter":
+                new_val = t_abs_ms - offset_ms
+                new_val = max(0.0, new_val)
+                new_entry = replace(e, preutter=new_val)
+            elif name == "overlap":
+                new_entry = replace(e, overlap=t_abs_ms - offset_ms)
+            elif name == "consonant":
+                new_val = t_abs_ms - offset_ms
+                new_val = max(0.0, new_val)
+                new_entry = replace(e, consonant=new_val)
+            elif name == "cutoff":
+                new_entry = replace(e, cutoff=offset_ms - t_abs_ms)
+            else:
+                return
+
+        if new_entry:
+            self._current_entry = new_entry
+
+            if self._edit_callback is not None:
+                self._edit_callback(self._current_row, new_entry)
+
+            if update_visuals:
+                mapping = self.get_marker_positions()
+                self._update_filled_regions(mapping, dur_ms / 1000.0)
+
+    def _apply_srp_movement(self, new_preutter_abs_ms: float, dur_ms: float) -> OtoEntry:
+        """
+        Aplica o movimento SRP: quando a preutterance é movida,
+        o offset se move junto, mantendo as relações relativas dos outros marcadores.
+
+        Isso efetivamente "desliza" toda a janela de edição para a esquerda ou direita.
+        """
+        if self._current_entry is None:
+            return self._current_entry
+
+        e = self._current_entry
+        offset_ms = float(e.offset)
+        preutter_rel = float(e.preutter)  # Valor relativo atual
+
+        # Calcula a posição absoluta atual da preutterance
+        old_preutter_abs_ms = offset_ms + preutter_rel
+
+        # Calcula o delta do movimento
+        delta_ms = new_preutter_abs_ms - old_preutter_abs_ms
+
+        if abs(delta_ms) < 0.001:
+            return e
+
+        # Move o offset pelo mesmo delta
+        new_offset_ms = offset_ms + delta_ms
+
+        # Garante que o offset não fique negativo
+        if new_offset_ms < 0:
+            # Ajusta o delta para que o offset seja 0
+            delta_ms = -offset_ms
+            new_offset_ms = 0
+
+        # O cutoff precisa ser ajustado se for relativo ao final
+        # cutoff é armazenado como: offset - posição_absoluta_do_cutoff
+        # Então se o offset muda, o cutoff (que é a posição absoluta) também precisa mudar
+        old_cutoff_abs_ms = offset_ms - float(e.cutoff)
+        new_cutoff_abs_ms = old_cutoff_abs_ms + delta_ms
+
+        # Garante limites
+        new_cutoff_abs_ms = max(0, min(new_cutoff_abs_ms, dur_ms))
+        new_offset_ms = max(0, min(new_offset_ms, dur_ms))
+
+        # Calcula o novo valor do cutoff (relativo ao novo offset)
+        new_cutoff = new_offset_ms - new_cutoff_abs_ms
+
+        # Cria nova entrada com offset modificado
+        # Os valores relativos (overlap, preutter, consonant) permanecem iguais
+        new_entry = replace(
+            e,
+            offset=new_offset_ms,
+            cutoff=new_cutoff
+            # overlap, preutter, consonant mantêm seus valores relativos
+        )
+
+        return new_entry
+
+    def set_audio_duration(self, duration_ms: float):
+        """Define a duração do áudio atual em milissegundos."""
+        self._audio_duration_ms = duration_ms
+
+    def clear_markers(self):
+        """Remove todos os marcadores e regiões do plot."""
+        for line in self._marker_lines.values():
+            self.plot_widget.removeItem(line)
+        self._marker_lines.clear()
+
+        for region in self._filled_regions:
+            self.plot_widget.removeItem(region)
+        self._filled_regions.clear()
+
+        self._markers_s.clear()
+        self._current_entry = None
+        self._current_row = None
+        self._srp_drag_start_entry = None
+
+    def set_marker_at_mouse(
+            self,
+            name: str,
+            mouse_time_s: float,
+            snap_enabled: bool,
+            snap_mode: str,
+            wave_times: Optional[np.ndarray],
+            wave_data: Optional[np.ndarray],
+            srp_enabled: Optional[bool] = None
+    ) -> bool:
+        """
+        Define a posição de um marcador com base no tempo do mouse (em segundos).
+        Aplica snap se ativado.
+
+        Se SRP estiver ativo e o marcador for 'preutter', move todos os marcadores
+        proporcionalmente (desliza a janela inteira).
+
+        Args:
+            name: Nome do marcador ('offset', 'overlap', 'preutter', 'consonant', 'cutoff')
+            mouse_time_s: Tempo do mouse em segundos
+            snap_enabled: Se o snap está ativado
+            snap_mode: Modo de snap ('peaks', 'zero_crossing', 'none')
+            wave_times: Array de tempos da waveform
+            wave_data: Array de dados da waveform
+            srp_enabled: Override para o estado do SRP (opcional)
+
+        Returns:
+            True se o marcador foi atualizado com sucesso
+        """
+        if self._current_entry is None or self._current_row is None:
+            return False
+
+        # Aplica snap se necessário
+        if snap_enabled and wave_times is not None and wave_data is not None:
+            mouse_time_s = self._apply_snap(mouse_time_s, snap_mode, wave_times, wave_data)
+
+        # Valida o tempo do mouse
+        dur_ms = getattr(self, '_audio_duration_ms', 0)
+        if dur_ms <= 0:
+            return False
+
+        mouse_time_ms = max(0.0, min(mouse_time_s * 1000.0, dur_ms))
+        e = self._current_entry
+        offset_ms = float(e.offset)
+
+        # Determina se deve usar SRP
+        use_srp = srp_enabled if srp_enabled is not None else self._srp_enabled
+
+        new_entry = None
+
+        # SRP - Snap Relativo de Preutterance
+        if use_srp and name == "preutter":
+            new_entry = self._apply_srp_movement(mouse_time_ms, dur_ms)
+        else:
+            # Comportamento normal
+            if name == "offset":
+                new_entry = replace(e, offset=mouse_time_ms)
+            elif name == "preutter":
+                new_val = mouse_time_ms - offset_ms
+                new_val = max(0.0, new_val)
+                new_entry = replace(e, preutter=new_val)
+            elif name == "overlap":
+                new_entry = replace(e, overlap=mouse_time_ms - offset_ms)
+            elif name == "consonant":
+                new_val = mouse_time_ms - offset_ms
+                new_val = max(0.0, new_val)
+                new_entry = replace(e, consonant=new_val)
+            elif name == "cutoff":
+                new_entry = replace(e, cutoff=offset_ms - mouse_time_ms)
+            else:
+                return False
+
+        if new_entry:
+            self._current_entry = new_entry
+            audio_duration_s = dur_ms / 1000.0
+            self.update_markers_from_entry(audio_duration_s=audio_duration_s)
+
+            if self._edit_callback is not None:
+                self._edit_callback(self._current_row, new_entry)
+
+            return True
+
+        return False
+
+    def _apply_snap(
+            self,
+            mouse_time_s: float,
+            snap_mode: str,
+            wave_times: np.ndarray,
+            wave_data: np.ndarray
+    ) -> float:
+        """
+        Aplica snap à posição do mouse.
+
+        Args:
+            mouse_time_s: Tempo do mouse em segundos
+            snap_mode: Modo de snap ('peaks', 'zero_crossing', 'none')
+            wave_times: Array de tempos da waveform
+            wave_data: Array de dados da waveform
+
+        Returns:
+            Tempo ajustado em segundos
+        """
+        t = float(max(0.0, mouse_time_s))
+
+        if len(wave_times) == 0:
+            return t
+
+        if snap_mode == "peaks":
+            if GPU_BACKEND_AVAILABLE and gpu_enabled():
+                backend = get_gpu_backend()
+                idx = int(np.searchsorted(wave_times, t))
+                t = backend.find_peaks(wave_data, wave_times, idx, 100)
+            else:
+                idx = int(np.searchsorted(wave_times, t))
+                left = max(0, idx - 100)
+                right = min(len(wave_times), idx + 100)
+                if right > left:
+                    window = np.abs(wave_data[left:right])
+                    rel = int(np.argmax(window))
+                    t = float(wave_times[left + rel])
+
+        elif snap_mode == "zero_crossing":
+            if GPU_BACKEND_AVAILABLE and gpu_enabled():
+                backend = get_gpu_backend()
+                t = backend.find_zero_crossings(wave_data, wave_times, t, 50)
+            else:
+                idx = int(np.searchsorted(wave_times, t))
+                if 0 < idx < len(wave_data):
+                    if (wave_data[idx - 1] * wave_data[idx]) < 0:
+                        t_left = wave_times[idx - 1]
+                        t_right = wave_times[idx]
+                        if abs(t - t_left) < abs(t - t_right):
+                            t = float(t_left)
+                        else:
+                            t = float(t_right)
+
+        return t
+
+    def marker_times_ms(self) -> Dict[str, int]:
+        """Retorna os tempos dos marcadores em milissegundos."""
+        result = {}
+        if self._current_entry is None:
+            return result
+
+        e = self._current_entry
+        dur_ms = getattr(self, '_audio_duration_ms', 0)
+        if dur_ms <= 0:
+            return result
+
+        offset_ms = float(e.offset)
+
+        result["offset"] = int(offset_ms)
+        result["preutter"] = int(offset_ms + float(e.preutter))
+        result["overlap"] = int(offset_ms + float(e.overlap))
+        result["consonant"] = int(offset_ms + float(e.consonant))
+        result["cutoff"] = int(offset_ms - float(e.cutoff))
+
+        for key in result:
+            result[key] = max(0, min(result[key], int(dur_ms)))
+
+        return result

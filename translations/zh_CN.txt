@@ -1,0 +1,333 @@
+# ==============================================================================
+# COPAIBA LEXIKON - 简体中文 (中国)
+# ==============================================================================
+
+# ==============================================================================
+# 主菜单
+# ==============================================================================
+
+menu.file = 文件
+menu.edit = 编辑
+menu.view = 视图
+menu.playback = 播放
+menu.settings = 设置
+menu.encoding = 编码
+menu.render = 信号渲染
+menu.plugins = 插件
+menu.help = 帮助
+menu.language = 语言
+
+# 子菜单
+menu.gpu = GPU加速
+menu.enc_utau = UTAU经典（日语）
+menu.enc_other = 其他语言
+menu.plugins_auto = 自动化
+menu.plugins_analysis = 分析
+menu.plugins_manage = 管理
+menu.plugins_convert = 转换
+menu.plugins_validate = 验证
+
+# ==============================================================================
+# 文件菜单
+# ==============================================================================
+
+file.open_voicebank = 打开音源...
+file.open_oto = 打开 oto.ini...
+file.open_project = 打开项目...
+file.save_project = 保存项目
+file.recent_projects = 最近的项目
+file.no_recent = (没有最近的项目)
+file.clear_recent = 清除列表
+file.save = 保存
+file.save_as = 另存为...
+file.reveal = 打开音源文件夹
+file.reload = 重新加载 (Ctrl+F5)
+file.exit = 退出
+
+# ==============================================================================
+# 编辑菜单
+# ==============================================================================
+
+edit.undo = 撤销
+edit.redo = 重做
+edit.apply_preset = 应用预设
+edit.batch_edit = 批量编辑...
+edit.snap = 吸附到峰值
+edit.snap_mode = 吸附模式
+edit.snap_peaks = 峰值
+edit.snap_zero = 过零点
+edit.snap_none = 无
+edit.rename = 重命名别名
+edit.delete = 删除别名
+edit.duplicate = 复制别名
+edit.mark_complete = 标记为完成
+edit.keybindings = 配置参数键...
+
+# ==============================================================================
+# 视图菜单
+# ==============================================================================
+
+view.minimap = 显示小地图
+view.spectrogram = 显示频谱图
+view.spectrogram_config = 配置频谱图...
+view.gpu = GPU加速 (>金丝雀)
+view.gpu_info = GPU信息...
+view.normalize = 标准化波形
+view.persistent_zoom = 保持缩放
+view.reset_layout = 重置面板布局
+view.zoom_in = 放大 +
+view.zoom_out = 缩小 -
+view.zoom_reset = 重置缩放
+view.cycle_theme = 切换波形主题
+
+# ==============================================================================
+# 波形主题（颜色）
+# ==============================================================================
+
+theme.blue = 柔和蓝
+theme.green = 数字绿
+theme.mono = 黑底白字
+theme.orange = 琥珀橙
+theme.purple = 合成波紫
+theme.cyan = 终端青
+theme.pink = 霓虹粉
+theme.gold = 经典金
+theme.red = 强烈红
+
+# ==============================================================================
+# 播放菜单
+# ==============================================================================
+
+playback.segment = 播放片段（空格）
+playback.full = 播放完整音频（Shift+空格）
+playback.sector = 点击播放扇区
+playback.sector_tooltip = 启用时，点击波形播放小扇区（~200ms）
+playback.device = 音频设备...
+playback.device_tooltip = 选择音频输出设备
+playback.auto_save = 自动保存
+
+# ==============================================================================
+# 编辑模式
+# ==============================================================================
+
+mode.srp = SRP - 相对预发声吸附
+mode.srp_tooltip = 启用时，移动预发声会按比例移动偏移和截止
+mode.srna = SRnA - 无相对吸附
+mode.srna_tooltip = 启用时，每个参数可以独立移动
+
+# ==============================================================================
+# 预设
+# ==============================================================================
+
+preset.config = 配置预设...
+preset.cv = CV
+preset.vcv = VCV
+preset.vv = VV
+preset.vc = VC
+preset.minus_v = -V
+
+# ==============================================================================
+# 编码
+# ==============================================================================
+
+encoding.auto = 自动（检测）
+encoding.auto_tooltip = 自动检测文件编码
+encoding.utf8 = UTF-8（现代OpenUTAU）
+encoding.utf8_tooltip = OpenUTAU标准 - 支持所有语言
+encoding.utf8_bom = UTF-8 BOM（OpenUTAU兼容）
+encoding.utf8_bom_tooltip = 带BOM的UTF-8 - 更好的Windows兼容性
+encoding.cp932 = Shift-JIS / CP932（日语UTAU）
+encoding.cp932_tooltip = 经典日语UTAU标准
+encoding.eucjp = EUC-JP（Unix/Linux UTAU）
+encoding.eucjp_tooltip = 替代日语编码
+encoding.ansi = ANSI / Windows-1252（西方）
+encoding.ansi_tooltip = Windows西方语言标准
+encoding.latin1 = Latin-1 / ISO-8859-1（欧洲）
+encoding.latin1_tooltip = 西欧语言编码
+encoding.gbk = GBK / CP936（简体中文）
+encoding.gbk_tooltip = 简体中文音源库编码
+encoding.euckr = EUC-KR / CP949（韩语）
+encoding.euckr_tooltip = 韩语音源库编码
+
+# ==============================================================================
+# 插件
+# ==============================================================================
+
+plugin.manage = 管理插件...
+plugin.auto_oto = 播种者 - 自动OTO...
+plugin.auto_oto_tooltip = 自动检测偏移和截止
+plugin.vv_detector = 成熟 - VV检测器...
+plugin.vv_detector_tooltip = 检测VV别名中的元音过渡
+plugin.pitch = 收获 - 音高分析...
+plugin.pitch_tooltip = 显示音频的基频
+plugin.mic_tuner = 果园 - 调音器...
+plugin.mic_tuner_tooltip = 使用麦克风的实时调音器
+plugin.rename = 嫁接 - 批量重命名...
+plugin.rename_tooltip = 一次重命名多个别名
+plugin.sort = 选择 - 排序别名...
+plugin.sort_tooltip = 按不同条件排序别名
+plugin.romaji = 传粉者 - 罗马字 ↔ 平假名...
+plugin.romaji_tooltip = 在罗马字和平假名/片假名之间转换别名
+plugin.duplicates = 修剪者 - 重复检测器...
+plugin.duplicates_tooltip = 查找重复的别名
+plugin.consistency = 检查员 - 一致性检查器...
+plugin.consistency_tooltip = 验证参数并检测问题
+
+# ==============================================================================
+# 表格列
+# ==============================================================================
+
+column.favorite = 收藏
+column.filename = 文件
+column.alias = 别名
+column.offset = 偏移
+column.overlap = 重叠
+column.preutter = 预发声
+column.consonant = 辅音
+column.cutoff = 截止
+
+# ==============================================================================
+# 状态消息
+# ==============================================================================
+
+status.loaded = 已加载: {filename}
+status.saved = 保存成功!
+status.saved_at = 已保存: {time}
+status.copied = 已复制 {count} 个单元格
+status.pasted = 已粘贴到 {count} 个单元格
+status.oto_created = 已创建包含 {count} 个条目的 oto.ini
+status.project_loaded = 项目已加载: {name}
+status.project_saved = 项目已保存: {name}
+status.preset_applied = 预设 {preset} 已应用到 {count} 个别名
+status.sector_on = 扇区模式开启: 点击播放~200ms
+status.sector_off = 扇区模式关闭
+status.normalize_on = 标准化开启
+status.normalize_off = 标准化关闭
+status.sounddevice_unavailable = sounddevice 不可用
+status.clipboard_empty = 剪贴板为空
+status.language_changed = 语言已更改为 {lang}
+status.lines_completed = {done}/{total} 已完成
+status.ready = 就绪
+status.loading = 加载中...
+status.saving = 保存中...
+
+# ==============================================================================
+# 对话框和消息
+# ==============================================================================
+
+dialog.error = 错误
+dialog.confirm = 确认
+dialog.warning = 警告
+dialog.create_oto_title = 创建 oto.ini
+dialog.create_oto_text = 此文件夹中未找到 oto.ini。\n\n发现 {count} 个 .wav 文件。\n\n是否创建带有默认条目的 oto.ini？
+dialog.no_oto_wav = 此文件夹中未找到 oto.ini 或 .wav 文件。
+dialog.oto_create_error = 无法创建 oto.ini:\n{error}
+dialog.reload_title = 重新加载
+dialog.reload_text = 有未保存的更改。仍然重新加载吗？
+dialog.no_oto_loaded = 未加载 oto.ini。
+dialog.oto_not_found = 未找到 oto.ini 文件:\n{path}
+dialog.project_not_found = 未找到项目:\n{path}
+dialog.delete_title = 确认删除
+dialog.delete_text = 确定要删除第 {row} 行的别名吗？
+dialog.rename_title = 重命名别名
+dialog.rename_text = 新名称:
+dialog.batch_edit_title = 批量编辑
+dialog.batch_edit_none = 请至少选择一个别名。
+dialog.load_error = 加载错误
+dialog.save_error = 保存错误
+dialog.project_load_error = 项目加载错误
+dialog.project_save_error = 项目保存错误
+
+# ==============================================================================
+# 状态栏 / 进度
+# ==============================================================================
+
+progress.aliases = 别名 {current}/{total}
+progress.completed = {count} 已完成
+progress.session = 您已配置 {time}
+
+# ==============================================================================
+# 启动画面
+# ==============================================================================
+
+splash.loading = 加载中...
+splash.init_audio = 初始化音频...
+splash.init_gpu = 初始化GPU...
+splash.init_plugins = 加载插件...
+splash.init_ui = 准备界面...
+
+# ==============================================================================
+# 主窗口
+# ==============================================================================
+
+window.title = Copaiba Lexikon
+window.title_modified = Copaiba Lexikon - {filename} *
+window.title_saved = Copaiba Lexikon - {filename}
+
+# ==============================================================================
+# 键盘快捷键
+# ==============================================================================
+
+key.offset = 偏移（默认Q）
+key.overlap = 重叠（默认W）
+key.preutter = 预发声（默认E）
+key.consonant = 辅音（默认R）
+key.cutoff = 截止（默认T）
+
+# ==============================================================================
+# 关于 / 帮助
+# ==============================================================================
+
+help.about = 关于 Copaiba Lexikon
+help.version = 版本
+help.author = 开发者
+help.website = 网站
+
+# ==============================================================================
+# GPU
+# ==============================================================================
+
+gpu.enabled = GPU已启用: {name} ({memory}) [{backend}]
+gpu.disabled = GPU已禁用
+gpu.not_available = GPU不可用
+gpu.info_title = GPU信息
+
+# ==============================================================================
+# 消息和错误
+# ==============================================================================
+
+msg.backup_error_title = 备份错误
+msg.backup_error = 无法创建备份:\n{error}
+msg.load_error_title = 加载错误
+msg.load_error = 加载文件时出错:\n{error}
+msg.no_oto_found = 此文件夹中未找到 oto.ini。
+msg.file_not_found = 文件未找到:\n{file}
+msg.save_error_title = 保存错误
+msg.save_error = 保存时出错:\n{error}
+msg.saved = 已保存: {file}
+msg.saved_time = 您已配置 {time}
+msg.gpu_info_title = GPU信息
+msg.gpu_activate_failed = GPU激活失败
+msg.plugin_not_found_title = 错误
+msg.plugin_not_found = 未找到插件 '{name}'。
+msg.plugin_unavailable_title = 插件不可用
+msg.plugin_unavailable = 无法加载插件 '{name}'。\n请检查 'plugins' 文件夹是否存在。\n\n错误: {error}
+msg.plugin_error_title = 插件错误
+msg.plugin_error = 打开插件时发生错误:\n{error}
+msg.batch_edit_title = 批量编辑
+msg.batch_select_alias = 请至少选择一个别名。
+msg.confirm_exit_title = 确认退出
+msg.confirm_exit = 退出前保存更改？
+msg.confirm_discard = 有未保存的更改。放弃它们？
+msg.confirm_delete_title = 确认删除
+msg.confirm_delete = 确定要删除所选项目吗？
+msg.create_oto_title = 创建 oto.ini
+msg.create_oto = 未找到 oto.ini。\n根据 WAV 文件创建新的？
+msg.oto_created = 已创建包含 {count} 个条目的 oto.ini。
+
+# ==============================================================================
+# 语言名称
+# ==============================================================================
+
+language.name = 简体中文 (中国)
+language.code = zh_CN
