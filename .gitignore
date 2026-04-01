@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+#  Usually these files are written by a python script, and contain the binage and for local execution
+*.manifest
+*.spec
+
+# Keep specific spec files if needed, but usually better to manage them manually
+!Copaiba_Windows.spec
+!Copaiba_Linux.spec
+!Copaiba_Windows_OneFile.spec
+
+# Installer logs
+*.log
+warn-*.txt
+xref-*.txt
+
+# Logs
+*.txt
+# Allow README.md and other docs, but block common log names
+error_log.txt
+crash_output.txt
+err.txt
+my_err.txt
+my_out.txt
+pyi_out.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+
+# Local media/cache
+1.mp3
+coffee.jpg
+project_cache.py
+__init__.txt
