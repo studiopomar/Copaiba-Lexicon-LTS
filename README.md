@@ -1,3 +1,5 @@
+<img width="1919" height="1011" alt="image" src="https://github.com/user-attachments/assets/a18ad574-af82-4c55-9696-7e5372987eec" />
+
 # Copaiba Lexikon e-LTS(se)
 
 **Copaiba Lexikon** é um editor avançado de arquivos `oto.ini` para os sintetizadores de voz [UTAU](https://utau.wiki/) e [OpenUtau](https://github.com/stakira/OpenUtau), desenvolvido com foco em usabilidade, eficiência e recursos modernos.
