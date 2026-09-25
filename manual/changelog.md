@@ -2,7 +2,7 @@
 
 ---
 
-## Versão 2026.4 (v120.1) — `e-LTS(se)`
+## Versão 2026.4 (v130.8c) - `e-LTS(se)`
 
 ### Desempenho e Aceleração de Hardware
 - **Aceleração por GPU:** Pipeline de processamento de espectrograma otimizado via OpenGL, CUDA e OpenCL ([backend_gpu.py](file:///Users/victor/copaiba-lexicon-lts/backend_gpu.py)).

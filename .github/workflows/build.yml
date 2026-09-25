@@ -17,9 +17,9 @@ on:
         type: boolean
         default: true
       tag_name:
-        description: 'Tag da release (ex: v2026.4-v120.1)'
+        description: 'Tag da release (ex: v2026.4-v130.8c)'
         required: false
-        default: 'v2026.4-v120.1'
+        default: 'v2026.4-v130.8c'
 
 permissions:
   contents: write
@@ -138,13 +138,13 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ -n "${{ github.event.inputs.tag_name }}" ]; then
             echo "tag=${{ github.event.inputs.tag_name }}" >> $GITHUB_OUTPUT
-            echo "title=Copaiba Lexikon 2026.4 v120.1" >> $GITHUB_OUTPUT
+            echo "title=Copaiba Lexikon 2026.4 v130.8c" >> $GITHUB_OUTPUT
           elif [ -n "${{ github.ref_name }}" ] && [ "${{ github.ref_name }}" != "main" ]; then
             echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-            echo "title=Copaiba Lexikon 2026.4 v120.1 (${{ github.ref_name }})" >> $GITHUB_OUTPUT
+            echo "title=Copaiba Lexikon 2026.4 v130.8c (${{ github.ref_name }})" >> $GITHUB_OUTPUT
           else
-            echo "tag=v2026.4-v120.1" >> $GITHUB_OUTPUT
-            echo "title=Copaiba Lexikon 2026.4 v120.1" >> $GITHUB_OUTPUT
+            echo "tag=v2026.4-v130.8c" >> $GITHUB_OUTPUT
+            echo "title=Copaiba Lexikon 2026.4 v130.8c" >> $GITHUB_OUTPUT
           fi
 
       - name: Create or Update GitHub Release
@@ -153,7 +153,7 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.title }}
           body: |
-            ## Copaiba Lexikon 2026.4 v120.1 (e-LTS)
+            ## Copaiba Lexikon 2026.4 v130.8c (e-LTS)
 
             Release oficial do Copaiba Lexikon gerada automaticamente via GitHub Actions.
 

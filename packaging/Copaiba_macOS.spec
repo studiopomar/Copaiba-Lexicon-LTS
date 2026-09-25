@@ -97,7 +97,7 @@ app = BUNDLE(
         'NSHighResolutionCapable': 'True',
         'CFBundleDisplayName': 'Copaiba Lexikon',
         'CFBundleName': 'Copaiba',
-        'CFBundleShortVersionString': '2026.4-v120.1',
+        'CFBundleShortVersionString': '2026.4-v130.8c',
         'NSRequiresAquaSystemAppearance': 'False'
     }
 )
