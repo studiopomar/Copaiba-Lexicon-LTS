@@ -250,5 +250,3 @@ Contribuições alinhadas com os padrões de qualidade e estabilidade da linha *
 ## Créditos & Realização
 
 Desenvolvido pelo **[Studio Pomar Yvyra](https://github.com/studiopomar)**.
-
-*Copaiba Lexikon — Precisão e estabilidade para a comunidade vocal synth.*
