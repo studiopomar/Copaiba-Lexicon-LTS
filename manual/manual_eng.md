@@ -1,99 +1,114 @@
-# Windows and Resources of Copaiba Lexikon
+# User Manual — Copaiba Lexikon `e-LTS(se)`
 
-This document describes the main windows, panels, and plugins available in Copaiba Lexikon.
+Welcome to **Copaiba Lexikon**, a high-precision integrated development environment (IDE) designed for configuring, editing, and calibrating `oto.ini` files for [UTAU](https://utau.wiki/) and [OpenUtau](https://github.com/stakira/OpenUtau).
 
-## 🖥️ Main Interface
-
-The main window is divided into three main areas:
-
-### 1. Alias Table (List)
-Located at the top (by default), it displays all aliases from the `oto.ini` file.
-- **Columns:** Favorite, File (.wav), Alias, Parameters (Offset, Overlap, Preutterance, Consonant, Cutoff).
-- **Features:**
-    - Quick search filter.
-    - Sorting by columns.
-    - Direct value editing (double click).
-    - Multiple selection for batch editing.
-
-### 2. Waveform Panel
-Located at the bottom (by default), it shows the graphical visualization of the audio.
-- **Visualization:** Shows the sound wave of the selected file.
-- **Visual Editing:** Allows clicking and dragging the colored parameter lines.
-    - **Blue:** Offset (start) and Cutoff (end).
-    - **Green:** Overlap.
-    - **Red:** Preutterance.
-    - **Pink:** Consonant (fixed area).
-- **Mini-Map:** A smaller bar below the waveform for quick navigation in long files.
-
-### 3. Presets Panel (Side)
-Dockable panel that allows configuring and applying parameter presets.
-- Allows creating automatic rules for alias types (CV, VCV, etc).
+This manual provides comprehensive guidance for both novice voicebank creators and veteran otoers looking to achieve consistent, robust, and rapid voicebank configurations.
 
 ---
 
-## 🛠️ Tools and Dialogs
-
-### General Settings (`Ctrl + ,`)
-Global preferences window for the software.
-- **General:** Language, interface theme.
-- **Paths:** Location of external executables (Resamplers, Wavtool).
-- **Backup:** Auto-save configuration.
-
-### Spectrogram Settings
-Fine adjustments for the spectrogram visualization on the waveform.
-- Contrast, color gamma, and resolution.
-- Option to enable/disable hardware acceleration (GPU).
-
-### Key Configuration
-Allows remapping shortcut keys used in waveform editing (Default: Q, W, E, R, T).
-
-### Audio Device
-Selects the output audio interface (API and Device) for playback.
-
-### Plugin Manager
-Shows installed plugins, their versions, and allows enabling/disabling extensions.
+## Table of Contents
+1. [Core Concepts of `oto.ini`](#1-core-concepts-of-otoini)
+2. [User Interface Overview](#2-user-interface-overview)
+3. [Step-by-Step Otoing Workflow](#3-step-by-step-otoing-workflow)
+4. [Hardware-Accelerated Spectrogram (GPU)](#4-hardware-accelerated-spectrogram-gpu)
+5. [Auditory Validation: Real-Time Synthesis Testing](#5-auditory-validation-real-time-synthesis-testing)
+6. [The Pomar Tools Plugin Suite](#6-the-pomar-tools-plugin-suite)
+7. [Project Management, Encodings & Backups](#7-project-management-encodings--backups)
+8. [Frequently Asked Questions & Troubleshooting](#8-frequently-asked-questions--troubleshooting)
 
 ---
 
-## 🧩 Integrated Plugins
+## 1. Core Concepts of `oto.ini`
 
-Copaiba comes with a suite of powerful plugins installed:
+Each entry in an `oto.ini` file instructs the vocal synthesizer on how to slice, crossfade, and time-stretch recorded `.wav` audio. The standard structure is:
 
-### 🌱 Automation
+```text
+filename.wav=alias,offset,consonant,cutoff,preutterance,overlap
+```
 
-**Grafting - Mass Rename**
-- Allows renaming multiple aliases using substitution patterns (Find & Replace), prefixes, and suffixes.
-- Supports Regular Expressions (Regex).
+### The 5 Time-Alignment Parameters
 
-**Batch Edit**
-- Native tool to apply numerical values of Offset, Overlap, etc., to all selected aliases at once.
+```text
+|--- (Offset) --->|================== [Usable Audio Region] ==================| <--- (Cutoff) ---|
+                  |--- [Overlap] --->|
+                  |---------- [Preutterance] ---------->|
+                  |----------------- [Consonant (Fixed)] ----------------->|
+```
 
-### 🔍 Analysis
+1. **Offset (Start / Blue):** Starting point in milliseconds where the audio begins being processed. Discards initial silence and background noise.
+2. **Overlap (Crossfade / Green):** Point where the preceding note crossfades into the current note.
+3. **Preutterance (Attack / Red):** The moment where the vowel or core consonant hits the musical beat.
+4. **Consonant / Fixed (Fixed Region / Pink):** Section that is **never** stretched or compressed by the resampler, preserving natural consonant attacks.
+5. **Cutoff (End / Blue):** Defines the end boundary of usable audio. Negative values specify the distance from the end of the `.wav` file.
 
-**Harvest - Pitch Analysis**
-- Analyzes the fundamental frequency (F0) of the audio and displays it overlaid on the waveform.
-- Useful for checking the tuning of recordings.
+---
 
-**Maturation - VV Detector**
-- Specialized in finding the ideal crossfade point between vowels in VCV/VC banks.
+## 2. User Interface Overview
 
-**Orchard - Tuner (Mic Tuner)**
-- A real-time chromatic tuner using the microphone.
-- Useful for the *recounter* (recorder) to verify tuning before recording.
+Copaiba Lexikon is organized into ergonomic modular components:
 
-### ⚡ Utilities
+- **Alias Table (Top):** Searchable, sortable list of all phonemes and parameters. Supports in-place cell editing, status tracking, and multi-row selection.
+- **Waveform & Spectrogram Canvas (Center):** High-density audio waveform renderer with draggable colored markers and optional $F_0$ pitch overlay.
+- **Panoramic Mini-Map (Bottom of Waveform):** Interactive overview of the entire audio file for rapid navigation in long recordings.
+- **Presets Dock Panel (Side):** Quick application of standard time-parameter presets (CV, VCV, VV, VC, -V) via `Ctrl+1` through `Ctrl+5`.
 
-**Pollinator - Romaji ↔ Hiragana**
-- Automatically converts aliases from Romaji to Hiragana and vice-versa.
-- Supports different romanization standards.
+---
 
-**Selection - Sort Aliases**
-- Advanced list sorting tools (by suffix, pitch, duration, etc).
+## 3. Step-by-Step Otoing Workflow
 
-### 🛡️ Validation
+1. **Open Voicebank:** Press `Ctrl + O` and select your voicebank directory. Copaiba automatically detects and parses `oto.ini`.
+2. **Navigate Phonemes:** Use the keyboard arrow keys or mouse scroll over the waveform to switch between aliases.
+3. **Set Parameters with Quick Keys:**
+   - Hover mouse over consonant start and press **`Q`** (Offset).
+   - Hover mouse over crossfade point and press **`W`** (Overlap).
+   - Hover mouse over stable vowel onset and press **`E`** (Preutterance).
+   - Hover mouse over end of consonant body and press **`R`** (Consonant / Fixed).
+   - Hover mouse where vowel tail terminates and press **`T`** (Cutoff).
+4. **Auditory Validation:**
+   - Press `Space` to play the configured segment.
+   - Press `Ctrl + Shift + Space` for instant external resampler synthesis.
+5. **Mark as Done:** Press `Ctrl + M` to toggle completion status.
+6. **Save:** Press `Ctrl + S` to write changes to `oto.ini`.
 
-**Pruner - Duplicate Detector**
-- Scans the voicebank for duplicate aliases that may cause conflicts.
+---
 
-**Inspector - Consistency Checker**
-- Checks for invalid parameters (e.g., Overlap greater than Preutterance, invalid Cutoff).
+## 4. Hardware-Accelerated Spectrogram (GPU)
+
+Copaiba Lexikon features a real-time spectrogram renderer powered by **PyOpenGL** with hardware acceleration support for **CUDA** (NVIDIA) and **OpenCL** (AMD / Intel / Apple Silicon).
+
+- Open **Tools > Spectrogram Settings**.
+- Adjust **Contrast**, **Gamma**, **Frequency Gain**, and **FFT Window Size** (128 to 4096 samples).
+- Select high-contrast color maps (Magma, Viridis, Inferno, Greyscale).
+
+---
+
+## 5. Auditory Validation: Real-Time Synthesis Testing
+
+Eliminating the need to switch back and forth between external editors, Copaiba features a built-in immediate synthesis loop:
+
+- Press **`Ctrl + Shift + Space`**.
+- The alias is rendered through your chosen resampler (`TIPS`, `moresampler`, `resampler.exe`) and auditioned immediately.
+- Configure your preferred resampler executable in **General Settings (`Ctrl + ,`)**.
+
+---
+
+## 6. The Pomar Tools Plugin Suite
+
+Integrated directly under the [plugins/](file:///Users/victor/copaiba-lexicon-lts/plugins) menu:
+
+- **Harvest (*Pitch Analyzer*):** Fundamental frequency ($F_0$) curve extraction overlaid on the waveform.
+- **Pomar Tuner (*Mic Tuner*):** Real-time chromatic tuner via microphone for source recording QA.
+- **Maturation (*VV Detector*):** Automated harmonic crossfade point detection for VCV voicebanks.
+- **Grafting (*Mass Rename*):** Batch renaming with Regular Expressions (Regex), prefixes, and suffixes.
+- **Pollinator (*Romaji ↔ Hiragana*):** Bidirectional phonetic script conversion.
+- **Pruner (*Duplicate Detector*):** Voicebank sanitation and duplicate alias collision resolution.
+- **Inspector (*Consistency Checker*):** Mathematical validator catching timing anomalies (Overlap > Preutter, invalid Cutoff).
+- **Metadata Generators:** One-click generation of structured `README.md` and OpenUtau `character.yaml`.
+
+---
+
+## 7. Project Management, Encodings & Backups
+
+- **Character Encodings:** Full support for **UTF-8** (OpenUtau), **Shift-JIS / cp932** (Classic Japanese UTAU), and **ANSI**.
+- **Automated Backups:** Configurable background auto-save to prevent data loss.
+- **Discord Rich Presence:** Live status broadcast of your current voicebank and alias session.

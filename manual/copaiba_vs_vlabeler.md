@@ -1,52 +1,69 @@
 # Copaiba Lexikon vs vLabeler: Technical Comparison Analysis
 
-This document provides a comparative analysis between **Copaiba Lexikon** and **vLabeler**, highlighting architectural differences, workflow philosophies, and unique value propositions.
+This document provides a comparative technical analysis between **Copaiba Lexikon `e-LTS(se)`** and **vLabeler**, clarifying architectural choices, workflow philosophies, and their respective design scopes.
+
+> [!NOTE]
+> **Scope & Purpose Disclaimer:**  
+> This comparison is **not** intended as a competition or rivalry between software projects.  
+> - **vLabeler** is a versatile, format-agnostic audio labeling and alignment platform designed to handle a wide range of vocal synthesis architectures (including AI/neural models, `.lab`, and TextGrid datasets).  
+> - **Copaiba Lexikon** is **strictly specialized and focused on the UTAU / OpenUtau `oto.ini` format**. Rather than serving as a multi-purpose annotator, Copaiba is engineered exclusively to streamline the end-to-end lifecycle of classic and modern `oto.ini` voicebank configuration.  
+> 
+> Both tools fulfill distinct, complementary roles within the vocal synthesis community.
+
+---
 
 ## Executive Summary
 
-| Feature | Copaiba Lexikon | vLabeler |
+| Feature | Copaiba Lexikon `e-LTS(se)` | vLabeler |
 | :--- | :--- | :--- |
-| **Primary Domain** | **Dedicated Voicebank Development Suite** | **General Purpose Audio Labeling** |
-| **Methodology** | Holistic Lifecycle Management ("The Garden") | Modular Labeling & Annotation |
-| **User Interface** | **Specialized**, High-Fidelity, Workflow-Driven | Configurable, Agnostic, Compact |
-| **Automation** | **Integrated Signal Processing Suite** (Pitch/Timing) | Scripting & External Extensions |
-| **Workflow** | **Guided Pipeline:** Record > Tune > Configure > Validate | **Open-Ended:** Labeling Focused |
-| **Validation** | Real-time Synthesis Engine & Resampler Integration | Audio Playback & Basic Synthesis |
+| **Primary Domain** | **Dedicated `oto.ini` Voicebank Suite** | **Multi-Format & General Purpose Audio Labeling** |
+| **Target Formats** | **Exclusively `oto.ini` (UTAU / OpenUtau)** | `.lab`, TextGrid, `oto.ini`, Custom JSON modules |
+| **Methodology** | Guided Voicebank Lifecycle (*"The Garden"*) | Modular Annotation & Boundary Alignment |
+| **User Interface** | Fixed Ergonomic Semiotics, Workflow-Driven | Highly Configurable, Agnostic, Compact |
+| **Automation** | Integrated DSP Suite (Pitch, Timing, VV Detector) | Scripting, Custom Parsers & External Plugins |
+| **Validation Loop** | Real-Time Resampler Synthesis (`Ctrl+Shift+Space`) | Playback & Scripted External Synthesis |
+| **Hardware Acceleration** | Native GPU (OpenGL / CUDA / OpenCL) Spectrogram | Standard CPU Spectrogram Rendering |
+| **Source QA** | Built-in Mic Chromatic Tuner & $F_0$ Pitch Overlay | Configurable Labeling Profiles |
+
+---
 
 ## Core Architectural Differences
 
-### 1. Holistic Lifecycle Management vs. Precision Labeling
-**Copaiba Lexikon** conceptualizes a voicebank not merely as data, but as a project with a distinct lifecycle phases. This philosophy is embedded in its toolset:
-- **Harvest (Colheita):** Source material acquisition and fundamental frequency (F0) analysis.
-- **Grafting (Enxertia):** Asset organization, batch normalization, and nomenclature management.
-- **Maturation (Maturação):** Automated crossfade point detection for optimal transition consistency (VV/VCV).
-- **Pruner (Podador):** Data sanitation and redundancy elimination.
+### 1. Dedicated `oto.ini` Focus vs. Multi-Format Versatility
+**Copaiba Lexikon** is intentionally constrained to the `oto.ini` paradigm. Every tool, visual element, and algorithm is built around the specific 5 time-alignment parameters (Offset, Overlap, Preutterance, Fixed Consonant, Cutoff) and the voicebank lifecycle:
+- **Harvest (*Colheita*):** Source material acquisition and fundamental frequency ($F_0$) pitch analysis.
+- **Pomar Tuner (*Afinador*):** Real-time chromatic microphone tuner for vocalists during recording sessions.
+- **Grafting (*Enxertia*):** Batch alias normalization with Regular Expressions (Regex).
+- **Maturation (*Maturação*):** Automated harmonic crossfade point detection for VCV/VV transitions.
+- **Pruner (*Podador*):** Voicebank sanitation and duplicate alias collision resolution.
+- **Inspector (*Inspetor*):** Mathematical consistency verification of `oto.ini` parameter boundaries.
 
-In contrast, **vLabeler** functions primarily as a precision time-alignment tool. While highly capable for phoneme boundary definition, it acts as a specialized editor rather than a comprehensive project management suite.
+In contrast, **vLabeler** is architected for broad flexibility across different vocal technologies (DiffSinger, NNSVS, SVS datasets), making it ideal when switching between diverse labeling standards.
 
-### 2. Integrated Development Environment (IDE) Approach
-Copaiba Lexikon adopts an IDE-like approach to voicebank configuration.
-- **Immediate Feedback Loop:** The built-in **Synthesis Test Engine** (`Ctrl + Shift + Space`) allows users to audition aliases through specific external resamplers immediately after modification.
-- This eliminates the context switching required in other workflows where users must export to external software (like UTAU or OpenUtau) to validate configuration changes.
+---
 
-### 3. Integrated Signal Analysis & Quality Control
-Copaiba incorporates **Orchard (Pomar)**, a real-time spectral analysis tuner, and **Harvest**, a visual pitch overlay system.
-This integration enables **Source Quality Assurance**, allowing developers to verify recording pitch and stability *before* and *during* the configuration phase, effectively bridging the gap between the recording studio and the configuration desk.
+### 2. Integrated Auditory Validation Loop
+Copaiba incorporates direct resampler integration within its editing loop:
+- Pressing **`Ctrl + Shift + Space`** immediately renders and auditions the current alias through external resamplers (e.g., TIPS, moresampler, resampler.exe).
+- This provides instant auditory feedback on parameter adjustments without requiring project export or switching to UTAU / OpenUtau.
 
-### 4. Specialized Visualization & Ergonomics
-The interface design of Copaiba Lexikon prioritizes long-session ergonomics and operational clarity ("Premium Linguistics" aesthetic).
-- **Semiotically Colors:** Parameters (Offset, Overlap, Preutterance) utilize a distinct, immutable color schema designed for rapid visual parsing.
-- **High-Contrast Modes:** Specific visual modes tailored for waveform clarity help reduce eye strain during extended editing sessions.
+---
 
-## Use Case Recommendations
+### 3. Fixed Ergonomics vs. User-Defined Customization
+- **Copaiba Lexikon** adopts an immutable semiotic color standard (Blue, Green, Red, Pink) and fixed quick-keys (`Q`, `W`, `E`, `R`, `T`) designed to build muscle memory for high-volume otoing sessions.
+- **vLabeler** offers deep customization of shortcuts, layouts, and label types to accommodate varied workflows.
 
-### Select **vLabeler** when:
-- Developing datasets for AI/Neural synthesis engines (DiffSinger, NNSVS) requiring `.lab` phoneme alignment.
-- A highly customized, non-standard workflow or keybinding scheme is strictly required.
-- Working with experimental or non-UTAU vocal synthesis architectures.
+---
 
-### Select **Copaiba Lexikon** when:
-- Engineering High-Quality Classic UTAU Voicebanks (CV, VCV, VCCV).
-- A guided, quality-controlled workflow is preferred over raw flexibility.
-- Immediate auditory validation (Synthesis) is critical to your development loop.
-- You require a unified environment that handles the entire pipeline from finding pitch issues to finalizing configuration.
+## Choosing the Right Tool for Your Workflow
+
+### Choose **vLabeler** when:
+- Creating datasets for AI/neural vocal synthesis (DiffSinger, NNSVS, SVS) requiring `.lab` textgrid phoneme boundaries.
+- Working across multiple different annotation formats or non-standard vocal engines.
+- Requiring a highly customized, user-defined labeling layout.
+
+### Choose **Copaiba Lexikon `e-LTS(se)`** when:
+- Specifically engineering UTAU and OpenUtau voicebanks (`oto.ini` files).
+- Seeking an all-in-one environment with built-in pitch tracking, microphone tuning, and parameter validation.
+- Requiring instant resampler synthesis playback directly within the editor.
+- Seeking a focused, long-term stable tool optimized exclusively for the `oto.ini` workflow.

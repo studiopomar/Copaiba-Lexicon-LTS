@@ -1,78 +1,94 @@
-# Manual de Atalhos e Comandos do Copaiba Lexikon
+# Guia de Atalhos — Copaiba Lexikon `e-LTS(se)`
 
-Este documento lista todos os atalhos de teclado e comandos disponíveis no software Copaiba Lexikon.
+Relação completa de atalhos de teclado, ações de mouse e combinações de comando do **Copaiba Lexikon**.
 
-## 📂 Arquivo e Projetos
+---
 
-| Ação | Atalho | Descrição |
-| :--- | :--- | :--- |
-| **Abrir voicebank...** | `Ctrl + O` | Abre a pasta de um voicebank e carrega o `oto.ini` |
-| **Abrir projeto...** | `Ctrl + Shift + O` | Abre um arquivo de projeto salvo |
-| **Salvar projeto** | `Ctrl + Shift + P` | Salva o estado atual como projeto |
-| **Salvar (oto.ini)** | `Ctrl + S` | Salva as alterações no arquivo `oto.ini` |
-| **Salvar como...** | `Ctrl + Shift + S` | Salva o `oto.ini` com outro nome |
-| **Recarregar** | `Ctrl + F5` | Recarrega as configurações e o arquivo atual |
-| **Abrir pasta do voicebank** | `Ctrl + P` | Abre o explorador de arquivos na pasta do voicebank |
-| **Configurações Gerais** | `Ctrl + ,` | Abre a janela de configurações |
-
-## ✏️ Edição
+## Arquivos e Projetos
 
 | Ação | Atalho | Descrição |
 | :--- | :--- | :--- |
-| **Desfazer** | `Ctrl + Z` | Desfaz a última alteração |
-| **Refazer** | `Ctrl + Y` | Refaz a última alteração desfeita |
-| **Renomear Alias** | `Ctrl + R` | Renomeia o alias selecionado |
-| **Duplicar Alias** | `Ctrl + I` | Duplica o alias selecionado |
-| **Deletar Alias** | `Ctrl + D` | Remove o alias selecionado |
-| **Marcar como Concluído** | `Ctrl + M` | Alterna o status de concluído do alias |
-| **Copiar** | `Ctrl + C` | Copia as células selecionadas na tabela |
-| **Colar** | `Ctrl + V` | Cola dados na tabela |
+| **Abrir Voicebank...** | `Ctrl + O` | Abre a pasta de um voicebank e carrega automaticamente o `oto.ini` |
+| **Abrir Projeto...** | `Ctrl + Shift + O` | Abre um arquivo de projeto salvo (`.copaiba`) |
+| **Salvar (oto.ini)** | `Ctrl + S` | Salva as alterações diretamente no arquivo `oto.ini` |
+| **Salvar Projeto** | `Ctrl + Shift + P` | Salva o estado atual como projeto |
+| **Salvar Como...** | `Ctrl + Shift + S` | Salva o arquivo `oto.ini` com outro nome ou localização |
+| **Recarregar Tudo** | `Ctrl + F5` | Recarrega as configurações e o banco de dados do disco |
+| **Abrir Pasta no Sistema** | `Ctrl + P` | Abre o gerenciador de arquivos (Explorer/Finder) na pasta do voicebank |
+| **Configurações Gerais** | `Ctrl + ,` | Abre o painel global de preferências do sistema |
 
-## 🌊 Waveform e Navegação
+---
 
-### Teclado (Foco na Waveform)
+## Waveform e Posicionamento de Marcadores
 
-| Tecla | Função | Descrição |
+> [!NOTE]
+> Os atalhos de letra posicionam o marcador correspondente exatamente na posição horizontal onde o cursor do mouse estiver sobre a waveform.
+
+| Tecla | Marcador | Código de Cor | Descrição |
+| :---: | :--- | :---: | :--- |
+| **`Q`** | **Offset** | Azul | Define o ponto de início do áudio aproveitável |
+| **`W`** | **Overlap** | Verde | Define o ponto de transição e cruzamento (crossfade) |
+| **`E`** | **Preutterance** | Vermelho | Define o ponto de ataque da vogal (tempo de compasso) |
+| **`R`** | **Consonant** | Rosa | Define o fim da área fixa consonantal invariável |
+| **`T`** | **Cutoff** | Azul | Define o ponto de corte do final do áudio |
+
+---
+
+## Navegação, Zoom e Pan
+
+| Ação | Comando | Descrição |
 | :--- | :--- | :--- |
-| **Q** | Definir Offset | Define o ponto de Offset na posição do mouse |
-| **W** | Definir Overlap | Define o ponto de Overlap na posição do mouse |
-| **E** | Definir Preutterance | Define o ponto de Preutterance na posição do mouse |
-| **R** | Definir Consonant | Define o ponto de Consonant na posição do mouse |
-| **T** | Definir Cutoff | Define o ponto de Cutoff na posição do mouse |
-| **Seta Cima** | Alias Anterior | Navega para o alias anterior na lista |
-| **Seta Baixo** | Próximo Alias | Navega para o próximo alias na lista |
-| **Scroll Mouse** | Navegar Aliases | Roda para cima/baixo troca o alias atual |
+| **Zoom Horizontal** | `Ctrl + Scroll` | Aumenta ou diminui o zoom na escala de tempo |
+| **Zoom Vertical** | `Alt + Scroll` | Aumenta ou diminui o ganho visual da amplitude |
+| **Deslocamento (Pan)** | `Shift + Scroll` | Desloca a visualização para a esquerda ou direita |
+| **Arrastar Marcador** | `Clique e Arraste` | Move linhas de parâmetros diretamente com o mouse |
+| **Navegar Aliases** | `Seta Cima / Baixo` | Seleciona o alias anterior ou próximo na lista |
+| **Navegar por Scroll** | `Scroll do Mouse` | Roda do mouse sobre a waveform troca de alias |
+| **Tocar Setor** | `Clique Esquerdo` | Reproduz o setor da waveform clicado |
+| **Reprodução Precisa** | `Alt + Clique` | Reproduz trecho a partir da posição exata do cursor |
 
-### Mouse e Zoom
+---
+
+## Reprodução e Validação Auditiva
 
 | Ação | Atalho | Descrição |
 | :--- | :--- | :--- |
-| **Zoom Horizontal** | `Ctrl + Scroll` | Aumenta ou diminui o zoom no tempo |
-| **Zoom Vertical** | `Alt + Scroll` | Aumenta ou diminui a amplitude da onda |
-| **Pan Horizontal** | `Shift + Scroll` | Move a waveform para esquerda ou direita |
-| **Tocar Setor** | `Clique Esquerdo` | Toca o setor clicado (se "Tocar setor ao clicar" estiver ativo) ou o segmento principal |
+| **Tocar Segmento** | `Espaço` | Reproduz apenas o trecho delimitado entre Offset e Cutoff |
+| **Tocar Áudio Completo** | `Shift + Espaço` | Reproduz o arquivo `.wav` original inteiro |
+| **Teste de Síntese** | `Ctrl + Shift + Espaço` | Renderiza o fonema pelo resampler externo configurado e toca |
 
-## ⏯️ Reprodução
+---
+
+## Presets Rápidos de Parâmetros
+
+| Atalho | Preset | Aplicação Típica |
+| :--- | :--- | :--- |
+| **`Ctrl + 1`** | **CV** | Consoante + Vogal padrão (ex: `ka`, `sa`, `ta`) |
+| **`Ctrl + 2`** | **VCV** | Vogal-Consoante-Vogal (ex: `- ka`, `a ka`, `i sa`) |
+| **`Ctrl + 3`** | **VV** | Transição entre Vogais (ex: `a i`, `u e`) |
+| **`Ctrl + 4`** | **VC** | Vogal + Consoante final (ex: `a k`, `o s`) |
+| **`Ctrl + 5`** | **-V** | Ataque inicial de vogal isolada (ex: `- a`, `- o`) |
+
+---
+
+## Edição e Manipulação da Tabela
 
 | Ação | Atalho | Descrição |
 | :--- | :--- | :--- |
-| **Tocar Segmento** | `Espaço` | Toca a região configurada do alias atual |
-| **Tocar Completo** | `Shift + Espaço` | Toca o arquivo de áudio original inteiro |
-| **Teste de Síntese** | `Ctrl + Shift + Espaço` | Sintetiza e toca o alias usando o resampler configurado |
+| **Desfazer** | `Ctrl + Z` | Desfaz a última modificação de parâmetro ou texto |
+| **Refazer** | `Ctrl + Y` | Refaz a última ação desfeita |
+| **Marcar Concluído** | `Ctrl + M` | Alterna a marcação de status de conclusão do alias |
+| **Renomear Alias** | `Ctrl + R` | Abre diálogo de renomeação do alias atual |
+| **Duplicar Alias** | `Ctrl + I` | Cria uma cópia da linha atual para criar variações |
+| **Deletar Alias** | `Ctrl + D` | Remove a linha selecionada da tabela |
+| **Copiar Células** | `Ctrl + C` | Copia os dados selecionados na tabela |
+| **Colar Células** | `Ctrl + V` | Cola valores da área de transferência nas células |
 
-## ⚡ Presets (Configuração Rápida)
+---
 
-| Preset | Atalho | Descrição |
-| :--- | :--- | :--- |
-| **CV** | `Ctrl + 1` | Aplica configuração padrão para CV |
-| **VCV** | `Ctrl + 2` | Aplica configuração padrão para VCV |
-| **VV** | `Ctrl + 3` | Aplica configuração padrão para VV |
-| **VC** | `Ctrl + 4` | Aplica configuração padrão para VC |
-| **-V** | `Ctrl + 5` | Aplica configuração padrão para -V |
-| **Ciclar Tema** | `Ctrl + '` | Alterna entre os temas de cores da waveform |
-
-## 🖥️ Visualização
+## Interface e Visualização
 
 | Ação | Atalho | Descrição |
 | :--- | :--- | :--- |
-| **Resetar Layout** | `Ctrl + Shift + R` | Restaura a posição padrão dos painéis |
+| **Ciclar Tema da Waveform** | `Ctrl + '` | Alterna os esquemas de cores e contraste da waveform |
+| **Restaurar Layout Padrão** | `Ctrl + Shift + R` | Reposiciona todos os painéis e docks ao layout inicial |

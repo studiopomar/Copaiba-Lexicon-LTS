@@ -15,7 +15,7 @@ on:
         description: 'Criar GitHub Release agora?'
         required: false
         type: boolean
-        default: false
+        default: true
       tag_name:
         description: 'Tag da release (ex: v2026.4-v120.1)'
         required: false
@@ -33,19 +33,24 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            os_name: Windows
-            spec: Copaiba_Windows.spec
+            os_name: Windows x64
+            spec: packaging/Copaiba_Windows.spec
             artifact_name: Copaiba-Windows-x64
             output_type: zip
           - os: ubuntu-22.04
-            os_name: Linux
-            spec: Copaiba_Linux.spec
+            os_name: Linux x86_64
+            spec: packaging/Copaiba_Linux.spec
             artifact_name: Copaiba-Linux-x64
             output_type: tar
-          - os: macos-latest
-            os_name: macOS
-            spec: Copaiba_macOS.spec
-            artifact_name: Copaiba-macOS
+          - os: macos-14
+            os_name: macOS Apple Silicon (ARM64)
+            spec: packaging/Copaiba_macOS.spec
+            artifact_name: Copaiba-macOS-AppleSilicon-ARM64
+            output_type: zip
+          - os: macos-13
+            os_name: macOS Intel (x86_64)
+            spec: packaging/Copaiba_macOS.spec
+            artifact_name: Copaiba-macOS-Intel-x86_64
             output_type: zip
 
     steps:
@@ -119,7 +124,7 @@ jobs:
   release:
     name: Publicar Release
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true')
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == true)
     runs-on: ubuntu-latest
     steps:
       - name: Download all build artifacts
@@ -153,15 +158,18 @@ jobs:
           tag_name: ${{ steps.release_info.outputs.tag }}
           name: ${{ steps.release_info.outputs.title }}
           body: |
-            ## Copaiba Lexikon 2026.4 v120.1
+            ## Copaiba Lexikon 2026.4 v120.1 (e-LTS)
 
-            > **Nota da Atualização:**
-            > Esta é uma **atualização de segurança e multiplataforma**. Não contém alterações significativas de performance — trata-se de **correções simples para manutenção e longevidade do software**.
+            Release oficial do Copaiba Lexikon gerada automaticamente via GitHub Actions.
 
-            ### 📦 Binários disponíveis:
-            - **Windows**: `Copaiba-Windows-x64.zip` (Descompactar e executar `Copaiba.exe`)
-            - **Linux**: `Copaiba-Linux-x64.tar.gz` (Descompactar e executar `Copaiba_Linux`)
-            - **macOS**: `Copaiba-macOS.zip` (Descompactar e mover `Copaiba.app` para `/Applications`)
+            ### Binários Disponíveis:
+            - **Windows (x64)**: `Copaiba-Windows-x64.zip` (Descompactar e executar `Copaiba.exe`)
+            - **Linux (x86_64)**: `Copaiba-Linux-x64.tar.gz` (Descompactar e executar `./Copaiba_Linux`)
+            - **macOS Apple Silicon (M1/M2/M3/M4 - ARM64)**: `Copaiba-macOS-AppleSilicon-ARM64.zip`
+            - **macOS Intel (x86_64)**: `Copaiba-macOS-Intel-x86_64.zip`
+
+            > **Nota de Arquitetura:**
+            > O framework PySide6 (Qt 6) é estritamente 64-bit (x86_64 / arm64), tendo descontinuado o suporte a sistemas legados de 32-bit.
           files: final_assets/*
           draft: false
           prerelease: false

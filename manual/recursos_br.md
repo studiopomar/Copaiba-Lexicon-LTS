@@ -1,99 +1,94 @@
-# Janelas e Recursos do Copaiba Lexikon
+# Catálogo de Recursos e Módulos — Copaiba Lexikon `e-LTS(se)`
 
-Este documento descreve as principais janelas, painéis e plugins disponíveis no Copaiba Lexikon.
-
-## Interface Principal
-
-A janela principal é dividida em três áreas principais:
-
-### 1. Tabela de Aliases (Lista)
-Localizada no topo (por padrão), exibe todos os aliases do arquivo `oto.ini`.
-- **Colunas:** Favorito, Arquivo (.wav), Alias, Parâmetros (Offset, Overlap, Preutterance, Consonant, Cutoff).
-- **Recursos:**
-    - Filtro de busca rápida.
-    - Ordenação por colunas.
-    - Edição direta de valores (duplo clique).
-    - Seleção múltipla para edição em lote.
-
-### 2. Painel de Waveform (Forma de Onda)
-Localizada na parte inferior (por padrão), mostra a visualização gráfica do áudio.
-- **Visualização:** Mostra a onda sonora do arquivo selecionado.
-- **Edição Visual:** Permite clicar e arrastar as linhas coloridas dos parâmetros.
-    - **Azul:** Offset (início) e Cutoff (fim).
-    - **Verde:** Overlap.
-    - **Vermelho:** Preutterance.
-    - **Rosa:** Consonant (área fixa).
-- **Mini-Mapa:** Uma barra menor abaixo da waveform para navegação rápida em arquivos longos.
-
-### 3. Painel de Presets (Lateral)
-Painel acoplável (dock) que permite configurar e aplicar predefinições de parâmetros.
-- Permite criar regras automáticas para tipos de aliases (CV, VCV, etc).
+Este guia detalha a arquitetura dos painéis da interface gráfica, configurações avançadas e a suíte completa de ferramentas integradas do **Copaiba Lexikon**.
 
 ---
 
-## Ferramentas e Diálogos
+## Arquitetura da Interface Gráfica
+
+A interface do Copaiba Lexikon é baseada em **PySide6 (Qt6)** com suporte a acoplamento dinâmico de painéis (*Dock Widgets*).
+
+### 1. Tabela Principal de Aliases
+- **Campos:** Favorito, Status de Conclusão, Arquivo `.wav`, Nome do Alias, Offset, Overlap, Preutterance, Consonant e Cutoff.
+- **Filtro em Tempo Real:** Campo de busca com suporte a correspondência instantânea e filtragem por prefixo/sufixo.
+- **Edição em Linha:** Clique duplo sobre qualquer valor numérico ou alias para edição imediata.
+- **Navegação com Teclado:** Suporte a atalhos de setas para seleção fluida.
+
+### 2. Painel Central de Waveform
+- **Visualização de Onda:** Traçado de alta densidade da forma de onda com cálculo dinâmico de pico/RMS.
+- **Linhas de Parâmetros:**
+  - **Offset (Início):** Delimita onde o fonema começa.
+  - **Overlap (Sobreposição):** Define a zona de transição com a nota anterior.
+  - **Preutterance (Pré-articulação):** Momento do tempo forte da nota.
+  - **Consonant (Área Fixa):** Região não esticada temporalmente.
+  - **Cutoff (Corte Final):** Ponto de término do fonema.
+- **Mini-Mapa Panorâmico:** Barra compacta na base da waveform exibindo a totalidade do arquivo de áudio para salto e navegação instantânea.
+
+### 3. Painel Lateral de Presets (Dock)
+- Pré-configurações prontas para aplicar em um clique ou via atalhos (`Ctrl+1` a `Ctrl+5`):
+  - **CV:** Padrão para fonemas Consoante-Vogal.
+  - **VCV:** Configuração para bancos contínuos de múltiplas sílabas.
+  - **VV:** Transições suaves entre vogais.
+  - **VC:** Fechamento de sílabas e consoantes finais.
+  - **-V:** Entradas e ataques vocálicos iniciais.
+- **Criador de Presets Personalizados:** Permite cadastrar regras próprias baseadas na duração e estrutura dos fonemas.
+
+---
+
+## Configurações Globais e Ajustes Finos
 
 ### Configurações Gerais (`Ctrl + ,`)
-Janela global de preferências do software.
-- **Geral:** Idioma, tema da interface.
-- **Caminhos:** Localização de executáveis externos (Resamplers, Wavtool).
-- **Backup:** Configuração de salvamento automático.
+- **Aparência & Tema:** Alternância entre temas escuros de alto contraste e estilos visuais ergonômicos.
+- **Codificação de Arquivos:** Suporte a leitura/escrita em **UTF-8**, **Shift-JIS (cp932)** e **ANSI (mbcs)**.
+- **Executáveis de Áudio:** Configuração dos caminhos do Resampler (ex: `TIPS`, `moresampler`, `resampler.exe`) e Wavtool.
+- **Salvamento Automático & Backups:** Definição de intervalos e retenção de arquivos históricos de segurança.
 
-### Configuração de Espectrograma
-Ajustes finos para a visualização do espectrograma na waveform.
-- Contraste, gama de cores e resolução.
-- Opção para ativar/desativar aceleração de hardware (GPU).
+### Configuração do Espectrograma e GPU
+- **Aceleração por Hardware:** Suporte a **CUDA** (NVIDIA) e **OpenCL** (AMD / Intel / Apple) para cálculo ultrarrápido de FFTs.
+- **Parâmetros Visuais:**
+  - Ajuste de **Contraste**, **Gama** e **Ganho de Frequência**.
+  - Tamanho da Janela FFT (128 a 4096 amostras).
+  - Mapas de Cores especializados (Magma, Viridis, Plasma, Greyscale).
 
-### Configuração de Teclas
-Permite remapear as teclas de atalho usadas na edição da waveform (Padrão: Q, W, E, R, T).
-
-### Dispositivo de Áudio
-Seleciona a interface de áudio de saída (API e Dispositivo) para reprodução.
-
-### Gerenciador de Plugins
-Mostra os plugins instalados, suas versões e permite ativar/desativar extensões.
+### Configuração de Áudio & Dispositivos
+- Seleção de API de áudio (WASAPI, DirectSound, ALSA, PulseAudio, CoreAudio).
+- Escolha da interface de som e taxa de amostragem.
 
 ---
 
-## Plugins Integrados
+## Suíte de Plugins Integrados (Pomar Tools)
 
-O Copaiba já vem com uma suíte de plugins poderosos instalados:
+### Colheita (*Pitch Analyzer*)
+- **Função:** Extrai a frequência fundamental ($F_0$) do áudio e desenha uma linha tonal sobreposta à waveform.
+- **Utilidade:** Permite identificar oscilações de pitch indesejadas, vibratos instáveis ou erros de afinação no voicebank gravado.
 
-### Automação
+### Pomar Tuner (*Afinador em Tempo Real*)
+- **Função:** Afinador cromático com leitura direta do microfone da máquina.
+- **Utilidade:** O gravador (*recounter*) pode checar a nota e centavos de afinação antes de iniciar a captura de novos áudios.
 
-**Enxertia - Renomear em Massa**
-- Permite renomear múltiplos aliases usando padrões de substituição (Find & Replace), prefixos e sufixos.
-- Suporta Expressões Regulares (Regex).
+### Maturação (*Detector VV / Crossfade*)
+- **Função:** Algoritmo dedicado a identificar a região de transição harmônica entre duas vogais consecutivas.
+- **Utilidade:** Automatiza o posicionamento de Preutterance e Overlap em bancos VCV e VV complexos.
 
-**Edição em Lote**
-- Ferramenta nativa para aplicar valores numéricos de Offset, Overlap, etc., em todos os aliases selecionados de uma vez.
+### Enxertia (*Renomeação em Massa*)
+- **Função:** Modificação de múltiplos aliases em lote usando regras de busca/substituição, prefixos, sufixos e **Expressões Regulares (Regex)**.
+- **Utilidade:** Padronização de nomes de aliases em bancos multi-pitch (ex: adicionar `_A3`, `_C4` a centenas de arquivos de uma só vez).
 
-### Análise
+### Polinizador (*Romaji ↔ Hiragana*)
+- **Função:** Conversor fonético bidirecional entre escrita ocidental (Romaji) e silabário japonês (Hiragana).
+- **Utilidade:** Adapta voicebanks estrangeiros para o padrão japonês e vice-versa instantaneamente.
 
-**Colheita - Análise de Pitch**
-- Analisa a frequência fundamental (F0) do áudio e exibe sobreposta à waveform.
-- Útil para verificar a afinação das gravações.
+### Podador (*Detector de Duplicatas*)
+- **Função:** Varredura em busca de entradas conflitantes com o mesmo alias ou arquivos apontados indevidamente.
+- **Utilidade:** Previne comportamentos anômalos no sintetizador gerados por duplicações acidentais no `oto.ini`.
 
-**Maturação - Detector VV**
-- Especializado em encontrar o ponto ideal de cruzamento (crossfade) entre vogais em bancos VCV/VC.
+### Inspetor (*Verificador de Consistência*)
+- **Função:** Validação lógica e matemática de todos os parâmetros do voicebank.
+- **Alertas Emitidos:**
+  - Overlap maior ou igual ao Preutterance.
+  - Consonant ultrapassando o limite físico do arquivo.
+  - Cutoff negativo com corte incompatível.
 
-**Pomar - Afinador (Mic Tuner)**
-- Um afinador cromático em tempo real que usa o microfone.
-- Útil para o <i>recounter</i> (gravador) verificar a afinação antes de gravar.
-
-### Utilidades
-
-**Polinizador - Romaji ↔ Hiragana**
-- Converte automaticamente os aliases de Romaji para Hiragana e vice-versa.
-- Suporta diferentes padrões de romanização.
-
-**Seleção - Ordenar Aliases**
-- Ferramentas avançadas de ordenação da lista (por sufixo, pitch, duração, etc).
-
-### Validação
-
-**Podador - Detector de Duplicatas**
-- Varre o voicebank em busca de aliases duplicados que podem causar conflitos.
-
-**Inspetor - Verificador de Consistência**
-- Verifica se há parâmetros inválidos (ex: Overlap maior que Preutterance, Cutoff inválido).
+### Geradores de Metadados
+- **Gerador de README:** Gera documentação estruturada do voicebank para distribuição.
+- **Gerador de `character.yaml`:** Cria o manifesto de configuração padronizado para uso direto no **OpenUtau**.

@@ -1,62 +1,48 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
-.Python
-build/
-develop-eggs/
+
+# Distribution / packaging
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+build/
+dist_ubuntu/
 *.egg-info/
 .installed.cfg
 *.egg
-MANIFEST
 
-# PyInstaller
-#  Usually these files are written by a python script, and contain the binage and for local execution
+# Virtual environments
+venv/
+.venv/
+env/
+
+# PyInstaller temporary files
 *.manifest
-*.spec
+packaging/*.manifest
 
-# Keep specific spec files if needed, but usually better to manage them manually
-!Copaiba_Windows.spec
-!Copaiba_Linux.spec
-!Copaiba_Windows_OneFile.spec
-!Copaiba_macOS.spec
+# Keep tracked spec files in packaging/
+!packaging/*.spec
 
-# Installer logs
+# PyInstaller / application logs
 *.log
 warn-*.txt
 xref-*.txt
-
-# Logs
-*.txt
-# Allow README.md and other docs, but block common log names
+pyi_out.txt
 error_log.txt
 crash_output.txt
-err.txt
-my_err.txt
-my_out.txt
-pyi_out.txt
 
-# OS
+# Testing & Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Operating System Files
 .DS_Store
 Thumbs.db
 
-# IDEs
+# IDEs and editors
 .vscode/
 .idea/
-
-# Local media/cache
-1.mp3
-coffee.jpg
-project_cache.py
-__init__.txt
+*.swp
+*~

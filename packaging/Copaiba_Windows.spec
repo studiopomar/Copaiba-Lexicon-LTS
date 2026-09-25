@@ -1,16 +1,19 @@
 # -*- mode: python ; coding: utf-8 -*-
+from pathlib import Path
 
 block_cipher = None
 
+# Localiza a raiz do projeto mesmo se o spec estiver dentro de packaging/
+ROOT_DIR = Path(SPECPATH).resolve().parent if Path(SPECPATH).name == 'packaging' else Path(SPECPATH).resolve()
+
 a = Analysis(
-    ['main.py'],
-    pathex=[],
+    [str(ROOT_DIR / 'main.py')],
+    pathex=[str(ROOT_DIR)],
     binaries=[],
     datas=[
-        ('plugins', 'plugins'),
-        ('translations', 'translations'),
-        ('favicon.ico', '.'),
-        ('site.webmanifest', '.')
+        (str(ROOT_DIR / 'plugins'), 'plugins'),
+        (str(ROOT_DIR / 'translations'), 'translations'),
+        (str(ROOT_DIR / 'favicon.ico'), '.'),
     ],
     hiddenimports=[
         'PySide6', 
@@ -68,7 +71,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['favicon.ico'],
+    icon=[str(ROOT_DIR / 'favicon.ico')],
 )
 coll = COLLECT(
     exe,
