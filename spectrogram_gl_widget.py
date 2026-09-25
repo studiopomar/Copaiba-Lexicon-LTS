@@ -44,10 +44,10 @@ def _get_colormap(name: str) -> np.ndarray:
 # ============================================================
 
 VERTEX_SHADER_SRC = """
-#version 130
-in vec2 position;
-in vec2 texCoord;
-out vec2 vTexCoord;
+#version 120
+attribute vec2 position;
+attribute vec2 texCoord;
+varying vec2 vTexCoord;
 
 void main() {
     gl_Position = vec4(position, 0.0, 1.0);
@@ -56,9 +56,8 @@ void main() {
 """
 
 FRAGMENT_SHADER_SRC = """
-#version 130
-in vec2 vTexCoord;
-out vec4 fragColor;
+#version 120
+varying vec2 vTexCoord;
 
 uniform sampler2D specData;
 uniform sampler2D colormapTex;   // 256x1 RGB
@@ -80,24 +79,23 @@ void main() {
 
     // Lookup no colormap (textura 256x1)
     vec3 color = texture2D(colormapTex, vec2(v, 0.5)).rgb;
-    fragColor = vec4(color, 1.0);
+    gl_FragColor = vec4(color, 1.0);
 }
 """
 
 MARKER_VERT_SRC = """
-#version 130
-in vec2 position;
+#version 120
+attribute vec2 position;
 void main() {
     gl_Position = vec4(position, 0.0, 1.0);
 }
 """
 
 MARKER_FRAG_SRC = """
-#version 130
-out vec4 fragColor;
+#version 120
 uniform vec4 markerColor;
 void main() {
-    fragColor = markerColor;
+    gl_FragColor = markerColor;
 }
 """
 
@@ -311,32 +309,16 @@ class SpectrogramGLWidget(QOpenGLWidget):
                 -1,  1, 0, 1,
             ], dtype=np.float32)
 
-            self._vao = glGenVertexArrays(1)
             self._vbo = glGenBuffers(1)
-            glBindVertexArray(self._vao)
             glBindBuffer(GL_ARRAY_BUFFER, self._vbo)
             glBufferData(GL_ARRAY_BUFFER, quad.nbytes, quad, GL_STATIC_DRAW)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
-            stride = 4 * 4  # 4 floats * 4 bytes
-            pos_loc = self._shader.attributeLocation("position")
-            tex_loc = self._shader.attributeLocation("texCoord")
-            glEnableVertexAttribArray(pos_loc)
-            glVertexAttribPointer(pos_loc, 2, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(0))
-            glEnableVertexAttribArray(tex_loc)
-            glVertexAttribPointer(tex_loc, 2, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(8))
-            glBindVertexArray(0)
-
-            # --- VAO/VBO para marcadores ---
-            self._marker_vao = glGenVertexArrays(1)
+            # --- VBO para marcadores ---
             self._marker_vbo = glGenBuffers(1)
-            glBindVertexArray(self._marker_vao)
             glBindBuffer(GL_ARRAY_BUFFER, self._marker_vbo)
-            # Reserva buffer para até 2 vértices por chamada
             glBufferData(GL_ARRAY_BUFFER, 4 * 4, None, GL_DYNAMIC_DRAW)
-            m_pos_loc = self._marker_shader.attributeLocation("position")
-            glEnableVertexAttribArray(m_pos_loc)
-            glVertexAttribPointer(m_pos_loc, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
-            glBindVertexArray(0)
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
 
             # --- texturas dummy (1×1 preto) ---
             self._tex_spec = self._create_tex2d(np.zeros((1, 1), dtype=np.float32))
@@ -396,9 +378,20 @@ class SpectrogramGLWidget(QOpenGLWidget):
         glBindTexture(GL_TEXTURE_2D, self._tex_cmap)
         glUniform1i(loc_cm, 1)
 
-        glBindVertexArray(self._vao)
+        glBindBuffer(GL_ARRAY_BUFFER, self._vbo)
+        stride = 4 * 4
+        pos_loc = self._shader.attributeLocation("position")
+        tex_loc = self._shader.attributeLocation("texCoord")
+        glEnableVertexAttribArray(pos_loc)
+        glVertexAttribPointer(pos_loc, 2, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(0))
+        glEnableVertexAttribArray(tex_loc)
+        glVertexAttribPointer(tex_loc, 2, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(8))
+
         glDrawArrays(GL_TRIANGLES, 0, 6)
-        glBindVertexArray(0)
+
+        glDisableVertexAttribArray(pos_loc)
+        glDisableVertexAttribArray(tex_loc)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
 
         self._shader.release()
 
@@ -472,6 +465,10 @@ class SpectrogramGLWidget(QOpenGLWidget):
             return
 
         glLineWidth(2.0)
+        m_pos_loc = self._marker_shader.attributeLocation("position")
+        glBindBuffer(GL_ARRAY_BUFFER, self._marker_vbo)
+        glEnableVertexAttribArray(m_pos_loc)
+        glVertexAttribPointer(m_pos_loc, 2, GL_FLOAT, GL_FALSE, 0, ctypes.c_void_p(0))
 
         for name, pos_s in self._marker_positions.items():
             x_ndc = (pos_s - self._x_start) / visible_w * 2.0 - 1.0
@@ -482,12 +479,11 @@ class SpectrogramGLWidget(QOpenGLWidget):
             glUniform4f(color_loc, *color)
 
             verts = np.array([x_ndc, -1.0, x_ndc, 1.0], dtype=np.float32)
-            glBindVertexArray(self._marker_vao)
-            glBindBuffer(GL_ARRAY_BUFFER, self._marker_vbo)
             glBufferSubData(GL_ARRAY_BUFFER, 0, verts.nbytes, verts)
             glDrawArrays(GL_LINES, 0, 2)
-            glBindVertexArray(0)
 
+        glDisableVertexAttribArray(m_pos_loc)
+        glBindBuffer(GL_ARRAY_BUFFER, 0)
         self._marker_shader.release()
 
     # --------------------------------------------------------
